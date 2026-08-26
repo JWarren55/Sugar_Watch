@@ -28,3 +28,4 @@ A project to use data science to use blood sugar, nutrition and exercise to elim
 
 ### Extra
 - Personalize dashboard
+- Camera to Chat GPT to estimate nutrition of food
