@@ -3,6 +3,15 @@
 ## description
 A project to use data science to use blood sugar, nutrition and exercise to eliminate diabetes. 
 
+## Tools
+
+- Python
+
+### Python pip installs
+
+- fastapi
+- uvicorn
+
 ## Timeline
 
 ### Core
