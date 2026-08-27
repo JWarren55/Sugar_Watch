@@ -12,6 +12,13 @@ A project to use data science to use blood sugar, nutrition and exercise to elim
 - fastapi
 - uvicorn
 
+### Run form localhost
+
+```
+source .venv/bin/activate
+uvicorn main:app --reload
+```
+
 ## Timeline
 
 ### Core
