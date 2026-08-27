@@ -9,9 +9,16 @@ A project to use data science to use blood sugar, nutrition and exercise to elim
 
 ### Python pip installs
 
+#### Web
 - fastapi
 - uvicorn
 - jinja2
+
+#### Google authentication
+- authlib
+- itsdangerous
+- httpx
+- python-dotenv
 
 ### Run form localhost
 
