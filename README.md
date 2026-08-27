@@ -11,6 +11,7 @@ A project to use data science to use blood sugar, nutrition and exercise to elim
 
 - fastapi
 - uvicorn
+- jinja2
 
 ### Run form localhost
 
