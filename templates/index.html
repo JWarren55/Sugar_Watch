@@ -7,9 +7,36 @@
 </head>
 
 <body>
-    <h1>Sugar Watch</h1>
-    <p>Sugar Watch is running.</p>
 
-    <button>Sign in with Google</button>
+    <h1>Sugar Watch</h1>
+
+    {% if user %}
+
+        <h2>Welcome, {{ user.name }}</h2>
+
+        <p>{{ user.email }}</p>
+
+        {% if user.picture %}
+            <img
+                src="{{ user.picture }}"
+                alt="Profile picture"
+                width="80"
+            >
+        {% endif %}
+
+        <br><br>
+
+        <a href="/logout">Log out</a>
+
+    {% else %}
+
+        <p>Track your glucose, food, and exercise.</p>
+
+        <a href="/login">
+            <button>Sign in with Google</button>
+        </a>
+
+    {% endif %}
+
 </body>
 </html>
