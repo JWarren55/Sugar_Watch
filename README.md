@@ -20,6 +20,10 @@ A project to use data science to use blood sugar, nutrition and exercise to elim
 - httpx
 - python-dotenv
 
+### database mysql
+- sqlalchemy
+- pymysql
+
 ### Run form localhost
 
 ```
