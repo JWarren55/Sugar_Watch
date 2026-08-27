@@ -57,17 +57,21 @@ async def login(request: Request):
 
 @app.get("/auth/google/callback")
 async def google_callback(request: Request):
-    token = await oauth.google.authorize_access_token(request)
+    try:
+        token = await oauth.google.authorize_access_token(request)
 
-    user = token.get("userinfo")
+        user = token.get("userinfo")
 
-    request.session["user"] = {
-        "name": user.get("name"),
-        "email": user.get("email"),
-        "picture": user.get("picture")
-    }
+        request.session["user"] = {
+            "name": user.get("name"),
+            "email": user.get("email"),
+            "picture": user.get("picture")
+        }
 
-    return RedirectResponse(url="/")
+        return RedirectResponse(url="/")
+
+    except Exception:
+        return RedirectResponse(url="/?login=cancelled")
 
 
 @app.get("/logout")

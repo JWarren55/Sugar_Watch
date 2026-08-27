@@ -10,8 +10,14 @@
 
     <h1>Sugar Watch</h1>
 
+    <!-- if sign in is cancelled -->
+    {% if request.query_params.get("login") == "cancelled" %}
+        <p>Google sign-in was cancelled.</p>
+    {% endif %}
+
     {% if user %}
 
+        <!-- User sign in -->
         <h2>Welcome, {{ user.name }}</h2>
 
         <p>{{ user.email }}</p>
@@ -30,6 +36,7 @@
 
     {% else %}
 
+        <!-- Home Screen -->
         <p>Track your glucose, food, and exercise.</p>
 
         <a href="/login">
