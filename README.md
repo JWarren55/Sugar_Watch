@@ -39,10 +39,18 @@ uvicorn main:app --reload
     - From Dexcom
     - Nutrition
     - Exercise 
+    - Mood
+        - Feeling
+        - Hunger
+        - Head clarity
 - Explore analysis
     - Plots
     - Averages
     - Standard Deviation
+    - Blood Sugar Timeline
+    - Nutrition percentages
+    - Fasting effect and interval
+    - Mood timeline
 
 ### Connection
 - Viewer Account

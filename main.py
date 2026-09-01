@@ -1,4 +1,6 @@
 import os
+import models
+from database import engine
 
 from authlib.integrations.starlette_client import OAuth
 from dotenv import load_dotenv
@@ -8,6 +10,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 
+app = FastAPI()
+models.Base.metadata.create_all(bind=engine)
 
 load_dotenv()
 
