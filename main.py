@@ -1,6 +1,4 @@
 import os
-import models
-from database import engine
 
 from authlib.integrations.starlette_client import OAuth
 from dotenv import load_dotenv
@@ -8,7 +6,11 @@ from fastapi import FastAPI, Request
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from sqlalchemy import select
 from starlette.middleware.sessions import SessionMiddleware
+
+import models
+from database import SessionLocal, engine
 
 app = FastAPI()
 models.Base.metadata.create_all(bind=engine)
@@ -41,37 +43,69 @@ oauth.register(
 
 @app.get("/")
 def home(request: Request):
-    user = request.session.get("user")
-
+    user = None
+    user_id = request.session.get("user_id")
+    
+    if user_id:
+        db = SessionLocal()
+        try:
+            user = db.get(models.User, user_id)
+        finally:
+            db.close()
+            
     return templates.TemplateResponse(
         request=request,
-        name="index.html",
+        name="index.html"
         context={
-            "title": "Sugar Watch",
+            "title": "Sugar Watch"
             "user": user
         }
     )
+        
 
 
-@app.get("/login")
-async def login(request: Request):
-    redirect_uri = request.url_for("google_callback")
-    return await oauth.google.authorize_redirect(request, redirect_uri)
+@app.get("/logout")
+def logout(request: Request):
+    request.session.clear()
+    return RedirectResponse(url="/")
 
 
 @app.get("/auth/google/callback")
 async def google_callback(request: Request):
     try:
         token = await oauth.google.authorize_access_token(request)
-
-        user = token.get("userinfo")
-
-        request.session["user"] = {
-            "name": user.get("name"),
-            "email": user.get("email"),
-            "picture": user.get("picture")
-        }
-
+        google_user = token.get("userinfo")
+        
+        google_id = google_user.get("sub")
+        email = google_user.get("email")
+        name = google_user.get("name")
+        picture = google_user.get("picture")
+        
+        db = SessionLocal()
+        
+        try:
+            ## SELECT * FROM users WHERE google_id = 'input';
+            stmt = select(models.User).where(models.User.google_id)
+            
+            user = db.scalar(stmt)
+            
+            if user is None:
+                user = models.User(
+                    google_id=google_id,
+                    email=email,
+                    name=name,
+                    picture=picture
+                )
+                ## INSERT INTO users (...) VALUES (...);
+                db.add(user)
+                db.commit()
+                db.refresh(user)
+                
+            request.session["user_id"] = user.id
+            
+        finally:
+            db.close()
+            
         return RedirectResponse(url="/")
 
     except Exception:
