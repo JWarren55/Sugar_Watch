@@ -85,7 +85,10 @@ async def google_callback(request: Request):
         
         try:
             ## SELECT * FROM users WHERE google_id = 'input';
-            stmt = select(models.User).where(models.User.google_id)
+            stmt = select(models.User).where(
+                models.User.google_id,
+                models.User.active == True
+                )
             
             user = db.scalar(stmt)
             
