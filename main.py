@@ -55,9 +55,9 @@ def home(request: Request):
             
     return templates.TemplateResponse(
         request=request,
-        name="index.html"
+        name="index.html",
         context={
-            "title": "Sugar Watch"
+            "title": "Sugar Watch",
             "user": user
         }
     )
