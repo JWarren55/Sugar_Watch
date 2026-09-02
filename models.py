@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, DateTime, Boolean
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey
 from database import Base
 
 
@@ -45,3 +45,38 @@ class User(Base):
         default=True,
         nullable=False
     )
+    
+class GlucoseReading(Base):
+    id = Column(
+        Integer,
+        primary_key=True,
+        index=True
+    )
+    
+    user_id = Column(
+        Integer,
+        ForeignKey("user.id"),
+        nullable=False
+    )
+    
+    glucose = Column(
+        Integer,
+        nullable=False
+    )
+    
+    timestamp = Column(
+        DateTime,
+        nullable = False
+    )
+    
+    source = Column(
+        String(50),
+        nullable=False
+    )
+    
+    active = Column(
+        Boolean,
+        default=True,
+        nullable=False
+    )
+
