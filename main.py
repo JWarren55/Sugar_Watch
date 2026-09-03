@@ -64,10 +64,10 @@ def home(request: Request):
         
 
 
-@app.get("/logout")
-def logout(request: Request):
-    request.session.clear()
-    return RedirectResponse(url="/")
+@app.get("/login")
+async def login(request: Request):
+    redirect_uri = request.url_for("google_callback")
+    return await oauth.google.authorize_redirect(request, redirect_uri)
 
 
 @app.get("/auth/google/callback")
@@ -75,23 +75,21 @@ async def google_callback(request: Request):
     try:
         token = await oauth.google.authorize_access_token(request)
         google_user = token.get("userinfo")
-        
+
         google_id = google_user.get("sub")
         email = google_user.get("email")
         name = google_user.get("name")
         picture = google_user.get("picture")
-        
+
         db = SessionLocal()
-        
+
         try:
-            ## SELECT * FROM users WHERE google_id = 'input';
             stmt = select(models.User).where(
-                models.User.google_id,
-                models.User.active == True
-                )
-            
+                models.User.google_id == google_id
+            )
+
             user = db.scalar(stmt)
-            
+
             if user is None:
                 user = models.User(
                     google_id=google_id,
@@ -99,16 +97,16 @@ async def google_callback(request: Request):
                     name=name,
                     picture=picture
                 )
-                ## INSERT INTO users (...) VALUES (...);
+
                 db.add(user)
                 db.commit()
                 db.refresh(user)
-                
+
             request.session["user_id"] = user.id
-            
+
         finally:
             db.close()
-            
+
         return RedirectResponse(url="/")
 
     except Exception:

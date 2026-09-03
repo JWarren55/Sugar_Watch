@@ -47,36 +47,42 @@ class User(Base):
     )
     
 class GlucoseReading(Base):
+    __tablename__ = "glucose_readings"
+
     id = Column(
         Integer,
         primary_key=True,
         index=True
     )
-    
+
     user_id = Column(
         Integer,
-        ForeignKey("user.id"),
+        ForeignKey("users.id"),
         nullable=False
     )
     
+    data_origin = Column(
+        String(50),
+        default = "manual"
+    )
+
     glucose = Column(
         Integer,
         nullable=False
     )
-    
+
     timestamp = Column(
         DateTime,
-        nullable = False
-    )
-    
-    source = Column(
-        String(50),
         nullable=False
     )
-    
+
+    source = Column(
+        String(50),
+        nullable=True
+    )
+
     active = Column(
         Boolean,
         default=True,
         nullable=False
     )
-
