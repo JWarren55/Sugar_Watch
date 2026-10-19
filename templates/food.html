@@ -1,0 +1,381 @@
+{% from 'actions.html' import actions %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Food - Sugar Watch</title>
+    </head>
+    <body>
+        <h1>Food</h1>
+        <p>
+            <a href="/">Back to Home</a>
+        </p>
+        <hr>
+        <!-- Food log list                             . -->
+        <h2>Foods to Log</h2>
+        <p>
+            Add foods from your saved foods below. When you are finished,
+            click <strong>Log All Foods</strong>.
+        </p>
+        <div id="food-list-container">
+            <p id="empty-list-message">No foods added yet.</p>
+            <table border="1" id="food-list-table" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>Food</th>
+                        <th>Amount</th>
+                        <th>Unit</th>
+                        <th>Remove</th>
+                    </tr>
+                </thead>
+                <tbody id="food-list-body">
+                </tbody>
+            </table>
+        </div>
+        <br>
+        <form method="post" action="/food/log-multiple" id="log-multiple-form">
+            <!-- JavaScript puts the hidden food inputs here -->
+            <div id="hidden-food-inputs"></div>
+            <button type="submit" id="log-all-button" disabled>Log All Foods</button>
+        </form>
+        <hr>
+        <!-- Saved foods                               . -->
+        <h2>Saved Foods</h2>
+        <label for="food-search">Search Foods:</label>
+        <input type="text" id="food-search" placeholder="Search name or brand...">
+        <br>
+        <br>
+        {% if saved_foods %}
+            <table border="1">
+                <tr>
+                    <th>Name</th>
+                    <th>Serving</th>
+                    <th>Calories</th>
+                    <th>Carbs</th>
+                    <th>Protein</th>
+                    <th>Fat</th>
+                    <th>Add to List</th>
+                    <th>Favorite</th>
+                    <th>Actions</th>
+                </tr>
+                {% for food in saved_foods %}
+                    <tr class="saved-food-row">
+                        <!-- Food name . -->
+                        <td class="food-name">
+                            {{ food.name }}
+                            {% if food.brand %}
+                                <br>
+                                <small>{{ food.brand }}</small>
+                            {% endif %}
+                        </td>
+                        <!-- Default serving . -->
+                        <td>
+                            {% if food.serving_size %}
+                                {{ food.serving_size }}
+                                {{ food.serving_unit or "" }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <!-- Calories . -->
+                        <td>{{ food.calories if food.calories is not none else "-" }}</td>
+                        <!-- Carbs . -->
+                        <td>
+                            {% if food.carbs is not none %}
+                                {{ food.carbs }} g
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <!-- Protein . -->
+                        <td>
+                            {% if food.protein is not none %}
+                                {{ food.protein }} g
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <!-- Fat . -->
+                        <td>
+                            {% if food.fat is not none %}
+                                {{ food.fat }} g
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <!-- Add to list . -->
+                        <td>
+                            <label>Amount:</label>
+                            <input type="number"
+                                   class="food-amount"
+                                   value="{{ food.serving_size or 1 }}"
+                                   min="0.01"
+                                   step="0.01"
+                                   required>
+                            <select class="food-unit" required>
+                                {% if food.serving_unit %}
+                                    <option value="{{ food.serving_unit }}"
+                                            selected>{{ food.serving_unit }}</option>
+                                {% endif %}
+                                <option value="g">g</option>
+                                <option value="kg">kg</option>
+                                <option value="oz">oz</option>
+                                <option value="lb">lb</option>
+                                <option value="mL">mL</option>
+                                <option value="L">L</option>
+                                <option value="fl oz">fl oz</option>
+                                <option value="cup">cup</option>
+                                <option value="tbsp">tbsp</option>
+                                <option value="tsp">tsp</option>
+                                <option value="piece">piece</option>
+                                <option value="slice">slice</option>
+                                <option value="packet">packet</option>
+                                <option value="serving">serving</option>
+                            </select>
+                            <button type="button"
+                                    class="add-food-button"
+                                    data-food-id="{{ food.id }}">Add to List</button>
+                        </td>
+                        <!-- Favorite . -->
+                        <td>
+                            <form method="post" action="/food/favorite">
+                                <input type="hidden" name="food_item_id" value="{{ food.id }}">
+                                {% if food.id in favorite_food_ids %}
+                                    <button type="submit">★ Favorite</button>
+                                {% else %}
+                                    <button type="submit">☆ Favorite</button>
+                                {% endif %}
+                            </form>
+                        </td>
+                        <td>{{ actions("food-item", food.id) }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        {% else %}
+            <p>No saved foods yet.</p>
+        {% endif %}
+        <hr>
+        <!-- Create custom food                        . -->
+        <h2>Add Custom Food</h2>
+        <p>Enter nutrition information for the serving size listed below.</p>
+        <form method="post" action="/food/create">
+            <h3>Basic Information</h3>
+            <!-- Food name . -->
+            <label for="name">Food Name</label>
+            <input type="text" id="name" name="name" required>
+            <br>
+            <br>
+            <!-- Brand . -->
+            <label for="brand">Brand</label>
+            <input type="text" id="brand" name="brand">
+            <br>
+            <br>
+            <!-- Serving size . -->
+            <label for="serving_size">Serving Size</label>
+            <input type="number"
+                   id="serving_size"
+                   name="serving_size"
+                   min="0.01"
+                   step="0.01"
+                   required>
+            <!-- Serving unit . -->
+            <label for="serving_unit">Unit</label>
+            <select id="serving_unit" name="serving_unit" required>
+                <option value="">Select Unit</option>
+                <option value="g">g</option>
+                <option value="kg">kg</option>
+                <option value="oz">oz</option>
+                <option value="lb">lb</option>
+                <option value="mL">mL</option>
+                <option value="L">L</option>
+                <option value="fl oz">fl oz</option>
+                <option value="cup">cup</option>
+                <option value="tbsp">tbsp</option>
+                <option value="tsp">tsp</option>
+                <option value="piece">piece</option>
+                <option value="slice">slice</option>
+                <option value="packet">packet</option>
+                <option value="serving">serving</option>
+            </select>
+            <br>
+            <br>
+            <!-- Barcode . -->
+            <label for="barcode">Barcode</label>
+            <input type="text" id="barcode" name="barcode" placeholder="Optional">
+            <br>
+            <br>
+            <!-- Main nutrition                            . -->
+            <h3>Nutrition</h3>
+            <p>Enter the nutrition values for the serving size above.</p>
+            <!-- Calories . -->
+            <label for="calories">Calories</label>
+            <input type="number" id="calories" name="calories" min="0" step="0.01">
+            <br>
+            <br>
+            <!-- Carbs . -->
+            <label for="carbs">Carbohydrates (g)</label>
+            <input type="number" id="carbs" name="carbs" min="0" step="0.01">
+            <br>
+            <br>
+            <!-- Protein . -->
+            <label for="protein">Protein (g)</label>
+            <input type="number" id="protein" name="protein" min="0" step="0.01">
+            <br>
+            <br>
+            <!-- Fat . -->
+            <label for="fat">Fat (g)</label>
+            <input type="number" id="fat" name="fat" min="0" step="0.01">
+            <br>
+            <br>
+            <!-- Extra nutrition                           . -->
+            <details>
+                <summary>More Nutrition Fields</summary>
+                <br>
+                <!-- Saturated fat . -->
+                <label for="saturated_fat">Saturated Fat (g)</label>
+                <input type="number"
+                       id="saturated_fat"
+                       name="saturated_fat"
+                       min="0"
+                       step="0.01">
+                <br>
+                <br>
+                <!-- Trans fat . -->
+                <label for="trans_fat">Trans Fat (g)</label>
+                <input type="number" id="trans_fat" name="trans_fat" min="0" step="0.01">
+                <br>
+                <br>
+                <!-- Cholesterol . -->
+                <label for="cholesterol">Cholesterol (mg)</label>
+                <input type="number" id="cholesterol" name="cholesterol" min="0" step="0.01">
+                <br>
+                <br>
+                <!-- Sodium . -->
+                <label for="sodium">Sodium (mg)</label>
+                <input type="number" id="sodium" name="sodium" min="0" step="0.01">
+                <br>
+                <br>
+                <!-- Fiber . -->
+                <label for="fiber">Fiber (g)</label>
+                <input type="number" id="fiber" name="fiber" min="0" step="0.01">
+                <br>
+                <br>
+                <!-- Sugar . -->
+                <label for="sugar">Sugar (g)</label>
+                <input type="number" id="sugar" name="sugar" min="0" step="0.01">
+                <br>
+                <br>
+                <!-- Added sugar . -->
+                <label for="added_sugar">Added Sugar (g)</label>
+                <input type="number" id="added_sugar" name="added_sugar" min="0" step="0.01">
+                <br>
+                <br>
+                <!-- Vitamin d . -->
+                <label for="vitamin_d">Vitamin D</label>
+                <input type="number" id="vitamin_d" name="vitamin_d" min="0" step="0.01">
+                <br>
+                <br>
+                <!-- Calcium . -->
+                <label for="calcium">Calcium (mg)</label>
+                <input type="number" id="calcium" name="calcium" min="0" step="0.01">
+                <br>
+                <br>
+                <!-- Iron . -->
+                <label for="iron">Iron (mg)</label>
+                <input type="number" id="iron" name="iron" min="0" step="0.01">
+                <br>
+                <br>
+                <!-- Potassium . -->
+                <label for="potassium">Potassium (mg)</label>
+                <input type="number" id="potassium" name="potassium" min="0" step="0.01">
+                <br>
+                <br>
+                <!-- Caffeine . -->
+                <label for="caffeine">Caffeine (mg)</label>
+                <input type="number" id="caffeine" name="caffeine" min="0" step="0.01">
+            </details>
+            <br>
+            <br>
+            <button type="submit">Save Food</button>
+        </form>
+        <hr>
+        <!-- Recent food entries                       . -->
+        <h2>Recent Food Entries</h2>
+        {% if entries %}
+            <table border="1">
+                <tr>
+                    <th>Actions</th>
+                    <th>Date / Time</th>
+                    <th>Food</th>
+                    <th>Amount</th>
+                    <th>Calories</th>
+                    <th>Carbs</th>
+                    <th>Protein</th>
+                    <th>Fat</th>
+                </tr>
+                {% for item in entries %}
+                    <tr>
+                        <td>{{ actions("food", item.entry.id) }}</td>
+                        <td>{{ item.entry.timestamp }}</td>
+                        <td>
+                            {% if item.food %}
+                                {{ item.food.name }}
+                                {% if item.food.brand %}
+                                    <br>
+                                    <small>{{ item.food.brand }}</small>
+                                {% endif %}
+                            {% else %}
+                                Food #{{ item.entry.food_item_id }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {{ item.entry.amount }}
+                            {{ item.entry.unit }}
+                        </td>
+                        {% if item.nutrition %}
+                            <td>
+                                {% if item.nutrition.calories is not none %}
+                                    {{ item.nutrition.calories | round(1) }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if item.nutrition.carbs is not none %}
+                                    {{ item.nutrition.carbs | round(1) }} g
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if item.nutrition.protein is not none %}
+                                    {{ item.nutrition.protein | round(1) }} g
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if item.nutrition.fat is not none %}
+                                    {{ item.nutrition.fat | round(1) }} g
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                        {% else %}
+                            <td>-</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>-</td>
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+            </table>
+        {% else %}
+            <p>No food entries yet.</p>
+        {% endif %}
+        <!-- Multi food javascript                     . -->
+        <script src="/static/food.js" defer></script>
+        <script src="/static/forms.js" defer></script>
+    </body>
+</html>

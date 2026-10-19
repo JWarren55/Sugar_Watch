@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Delete {{ title }} - Sugar Watch</title>
+    </head>
+    <body>
+        <h1>Delete {{ title }}?</h1>
+        <p>{{ summary }}</p>
+        <p>
+            This entry will be removed from your active list.
+            {% if title == "Saved food" %}
+                Existing food history will remain available.
+            {% endif %}
+        </p>
+        <form method="post">
+            <button type="submit">Delete Entry</button>
+            <a href="{{ back }}">Cancel</a>
+        </form>
+        <script src="/static/forms.js" defer></script>
+    </body>
+</html>

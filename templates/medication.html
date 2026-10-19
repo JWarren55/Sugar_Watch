@@ -1,0 +1,70 @@
+{% from 'actions.html' import actions %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Medication - Sugar Watch</title>
+    </head>
+    <body>
+        <h1>Medication Entries</h1>
+        <form method="post" action="/medication">
+            <p>
+                <label>
+                    Date and time
+                    <input type="datetime-local" name="timestamp" required>
+                </label>
+            </p>
+            <p>
+                <label>
+                    Medication name
+                    <input name="medication_name" maxlength="255" required>
+                </label>
+            </p>
+            <p>
+                <label>
+                    Dose (optional)
+                    <input type="number" name="dose" step="any" min="0.001">
+                </label>
+            </p>
+            <p>
+                <label>
+                    Unit (required when entering a dose)
+                    <input name="unit" maxlength="50" placeholder="e.g. mg, mL, units">
+                </label>
+            </p>
+            <button type="submit">Save Medication</button>
+        </form>
+        <h2>Recent Medication Entries</h2>
+        {% if entries %}
+            <table border="1">
+                <thead>
+                    <tr>
+                        <th>Date/time</th>
+                        <th>Medication</th>
+                        <th>Dose</th>
+                        <th>Unit</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in entries %}
+                        <tr>
+                            <td>{{ entry.timestamp }}</td>
+                            <td>{{ entry.medication_name }}</td>
+                            <td>{{ entry.dose if entry.dose is not none else '-' }}</td>
+                            <td>{{ entry.unit or '-' }}</td>
+                            <td>{{ actions("medication", entry.id) }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No medication entries yet.</p>
+        {% endif %}
+        <p>
+            <a href="/">Back to Home</a>
+        </p>
+        <script src="/static/forms.js" defer></script>
+    </body>
+</html>

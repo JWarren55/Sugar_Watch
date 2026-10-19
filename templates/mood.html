@@ -1,0 +1,89 @@
+{% from 'actions.html' import actions %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Mood - Sugar Watch</title>
+    </head>
+    <body>
+        <h1>Mood Entries</h1>
+        <form method="post" action="/mood">
+            <p>
+                <label>
+                    Date and time
+                    <input type="datetime-local" name="timestamp" required>
+                </label>
+            </p>
+            <p>
+                <label>
+                    Overall feeling
+                    <select name="feeling">
+                        <option value="">Not recorded</option>
+                        <option>Great</option>
+                        <option>Good</option>
+                        <option>Okay</option>
+                        <option>Low</option>
+                        <option>Stressed</option>
+                    </select>
+                </label>
+            </p>
+            <p>
+                <label>
+                    Hunger
+                    <select name="hunger">
+                        <option value="">Not recorded</option>
+                        <option>Not hungry</option>
+                        <option>Slightly hungry</option>
+                        <option>Hungry</option>
+                        <option>Very hungry</option>
+                    </select>
+                </label>
+            </p>
+            <p>
+                <label>
+                    Head / headache
+                    <select name="head">
+                        <option value="">Not recorded</option>
+                        <option>None</option>
+                        <option>Mild</option>
+                        <option>Moderate</option>
+                        <option>Severe</option>
+                    </select>
+                </label>
+            </p>
+            <button type="submit">Save Mood</button>
+        </form>
+        <h2>Recent Mood Entries</h2>
+        {% if entries %}
+            <table border="1">
+                <thead>
+                    <tr>
+                        <th>Date/time</th>
+                        <th>Feeling</th>
+                        <th>Hunger</th>
+                        <th>Headache</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in entries %}
+                        <tr>
+                            <td>{{ entry.timestamp }}</td>
+                            <td>{{ entry.feeling or '-' }}</td>
+                            <td>{{ entry.hunger or '-' }}</td>
+                            <td>{{ entry.head or '-' }}</td>
+                            <td>{{ actions("mood", entry.id) }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No mood entries yet.</p>
+        {% endif %}
+        <p>
+            <a href="/">Back to Home</a>
+        </p>
+        <script src="/static/forms.js" defer></script>
+    </body>
+</html>

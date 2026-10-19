@@ -1,0 +1,4 @@
+# Optional tools for formatting and checking the source files.
+ruff==0.17.1
+djlint==1.46.6
+jsbeautifier==2.0.3

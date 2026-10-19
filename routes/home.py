@@ -1,17 +1,15 @@
 from fastapi import APIRouter, Request
-from fastapi.templating import Jinja2Templates
 
 import models
 from database import SessionLocal
-
+from routes.common import templates
 
 router = APIRouter()
-
-templates = Jinja2Templates(directory="templates")
 
 
 @router.get("/")
 def home(request: Request):
+    # Show the home page with the current account, if signed in.
     user = None
     user_id = request.session.get("user_id")
 
@@ -26,8 +24,5 @@ def home(request: Request):
     return templates.TemplateResponse(
         request=request,
         name="index.html",
-        context={
-            "title": "Sugar Watch",
-            "user": user
-        }
+        context={"title": "Sugar Watch", "user": user},
     )

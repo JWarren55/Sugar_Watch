@@ -1,0 +1,18 @@
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
+
+# These scripts configure an isolated database before importing the app.
+[tool.ruff.lint.per-file-ignores]
+"tests/check_sections.py" = ["E402"]
+"tests/check_features.py" = ["E402"]
+
+[tool.djlint]
+profile = "jinja"
+indent = 4
+max_line_length = 100
+format_js = true
+preserve_blank_lines = false

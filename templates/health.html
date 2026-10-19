@@ -1,0 +1,120 @@
+{% from 'actions.html' import actions %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Health - Sugar Watch</title>
+    </head>
+    <body>
+        <h1>Health Profile and Measurements</h1>
+        <h2>Profile</h2>
+        <p>
+            Choose Imperial for height in inches or Metric for centimeters. Changing units converts the height you entered. Save your profile to apply your unit preference to measurements and exercise distance.
+        </p>
+        <form method="post" action="/health/profile">
+            <p>
+                <label>
+                    Preferred units
+                    <select id="preferred-units" name="preferred_units">
+                        <option value="imperial"
+                                {% if not profile or profile.preferred_units == 'imperial' %}selected{% endif %}>Imperial</option>
+                        <option value="metric"
+                                {% if profile and profile.preferred_units == 'metric' %}selected{% endif %}>Metric</option>
+                    </select>
+                </label>
+            </p>
+            {% set metric = profile and profile.preferred_units == 'metric' %}
+            <p>
+                <label for="height">
+                    Height (<span id="height-unit">{{ 'cm' if metric else 'inches' }}</span>)
+                </label>
+                <input id="height"
+                       type="number"
+                       step="any"
+                       min="0.1"
+                       name="height"
+                       value="{{ (profile.height if metric else profile.height / 2.54) if profile else '' }}"
+                       required>
+            </p>
+            <p>
+                <label>
+                    Sex
+                    <select name="sex" required>
+                        {% for option in ['Male','Female','Other'] %}
+                            <option value="{{ option }}"
+                                    {% if profile and profile.sex == option %}selected{% endif %}>{{ option }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+            </p>
+            <p>
+                <label>
+                    Date of birth
+                    <input type="date"
+                           name="date_of_birth"
+                           value="{{ profile.date_of_birth.isoformat() if profile else '' }}"
+                           required>
+                </label>
+            </p>
+            <button type="submit">{{ 'Update Profile' if profile else 'Create Profile' }}</button>
+        </form>
+        <hr>
+        <h2>Record Measurements</h2>
+        <form method="post" action="/health/measurements">
+            <input type="hidden" name="measurement_units" value="{{ saved_units }}">
+            <p>
+                Measurement units follow your saved profile. Save changes above before recording measurements.
+            </p>
+            <p>
+                <label>
+                    Date and time
+                    <input type="datetime-local" name="timestamp" required>
+                </label>
+            </p>
+            <p>
+                <label>
+                    Weight ({{ unit_labels.weight }})
+                    <input type="number" step="any" min="0.1" name="weight">
+                </label>
+            </p>
+            <p>
+                <label>
+                    Waist ({{ unit_labels.waist }})
+                    <input type="number" step="any" min="0.1" name="waist">
+                </label>
+            </p>
+            <button type="submit">Save Measurements</button>
+        </form>
+        <h2>Measurement History</h2>
+        {% if entries %}
+            <table border="1">
+                <thead>
+                    <tr>
+                        <th>Date/time</th>
+                        <th>Weight ({{ unit_labels.weight }})</th>
+                        <th>Waist ({{ unit_labels.waist }})</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in entries %}
+                        <tr>
+                            <td>{{ entry.timestamp }}</td>
+                            <td>{{ display(entry.weight, "weight") }}</td>
+                            <td>{{ display(entry.waist, "waist") }}</td>
+                            <td>{{ actions("health", entry.id) }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No measurements recorded yet.</p>
+        {% endif %}
+        <p>
+            <a href="/">Back to Home</a>
+        </p>
+        <script src="/static/health.js" defer></script>
+        <script src="/static/forms.js" defer></script>
+    </body>
+</html>

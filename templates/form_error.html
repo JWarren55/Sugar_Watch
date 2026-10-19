@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Check your entry - Sugar Watch</title>
+    </head>
+    <body>
+        <h1>We couldn't complete that request</h1>
+        <ul role="alert">
+            {% for message in messages %}
+                <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        <p>
+            Use your browser's Back button to return to your form, or <a href="{{ back }}">return to the section</a>.
+        </p>
+    </body>
+</html>

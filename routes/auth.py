@@ -9,7 +9,6 @@ from sqlalchemy import select
 import models
 from database import SessionLocal
 
-
 load_dotenv()
 
 router = APIRouter()
@@ -22,24 +21,25 @@ oauth.register(
     client_id=os.getenv("GOOGLE_CLIENT_ID"),
     client_secret=os.getenv("GOOGLE_CLIENT_SECRET"),
     server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
-    client_kwargs={
-        "scope": "openid email profile"
-    }
+    client_kwargs={"scope": "openid email profile"},
 )
 
 
 @router.get("/login")
 async def login(request: Request):
+    # Switch hosts before creating OAuth state so the callback keeps its session.
+    if request.url.hostname == "localhost":
+        return RedirectResponse(
+            str(request.url.replace(hostname="127.0.0.1")), status_code=307
+        )
     redirect_uri = request.url_for("google_callback")
 
-    return await oauth.google.authorize_redirect(
-        request,
-        redirect_uri
-    )
+    return await oauth.google.authorize_redirect(request, redirect_uri)
 
 
 @router.get("/auth/google/callback")
 async def google_callback(request: Request):
+    # Find or create the Google account, then save its ID in the session.
     try:
         token = await oauth.google.authorize_access_token(request)
 
@@ -53,18 +53,13 @@ async def google_callback(request: Request):
         db = SessionLocal()
 
         try:
-            stmt = select(models.User).where(
-                models.User.google_id == google_id
-            )
+            stmt = select(models.User).where(models.User.google_id == google_id)
 
             user = db.scalar(stmt)
 
             if user is None:
                 user = models.User(
-                    google_id=google_id,
-                    email=email,
-                    name=name,
-                    picture=picture
+                    google_id=google_id, email=email, name=name, picture=picture
                 )
 
                 db.add(user)
@@ -79,13 +74,12 @@ async def google_callback(request: Request):
         return RedirectResponse(url="/")
 
     except Exception:
-        return RedirectResponse(
-            url="/?login=cancelled"
-        )
+        return RedirectResponse(url="/?login=cancelled")
 
 
 @router.get("/logout")
 def logout(request: Request):
+    # Clear the session and return to the home page.
     request.session.clear()
 
     return RedirectResponse(url="/")

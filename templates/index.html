@@ -1,55 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title }}</title>
-</head>
-
-<body>
-
-    <h1>Sugar Watch</h1>
-
-    <!-- if sign in is cancelled -->
-    {% if request.query_params.get("login") == "cancelled" %}
-        <p>Google sign-in was cancelled.</p>
-    {% endif %}
-
-    {% if user %}
-
-        <!-- User sign in -->
-        <h2>Welcome, {{ user.name }}</h2>
-
-        <p>{{ user.email }}</p>
-
-        {% if user.picture %}
-            <img
-                src="{{ user.picture }}"
-                alt="Profile picture"
-                width="80"
-            >
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{{ title }}</title>
+    </head>
+    <body>
+        <h1>Sugar Watch</h1>
+        <!-- Show the result when Google sign-in is cancelled. -->
+        {% if request.query_params.get("login") == "cancelled" %}
+            <p>Google sign-in was cancelled.</p>
         {% endif %}
-
-        <br></br>
-
-        <p>
-            <a href="/glucose">Glucose Readings</a>
-        </p>
-        
-        <br><br>
-
-        <a href="/logout">Log out</a>
-
-    {% else %}
-
-        <!-- Home Screen -->
-        <p>Track your glucose, food, and exercise.</p>
-
-        <a href="/login">
-            <button>Sign in with Google</button>
-        </a>
-
-    {% endif %}
-
-</body>
+        {% if user %}
+            <!-- Show the signed-in user's account and tracking links. -->
+            <h2>Welcome, {{ user.name }}</h2>
+            <p>{{ user.email }}</p>
+            {% if user.picture %}
+                <img src="{{ user.picture }}" alt="Profile picture" width="80">
+            {% endif %}
+            <br>
+            </br>
+            <p>
+                <a href="/glucose">Glucose Readings</a>
+            </p>
+            <p>
+                <a href="/food">Food Entries</a>
+            </p>
+            <p>
+                <a href="/exercise">Exercise Entries</a>
+            </p>
+            <p>
+                <a href="/medication">Medication Entries</a>
+            </p>
+            <p>
+                <a href="/mood">Mood Entries</a>
+            </p>
+            <p>
+                <a href="/health">Health Profile and Measurements</a>
+            </p>
+            <br>
+            <br>
+            <a href="/logout">Log out</a>
+        {% else %}
+            <!-- Offer Google sign-in when no account is connected. -->
+            <p>Track your glucose, food, and exercise.</p>
+            <a href="/login">
+                <button>Sign in with Google</button>
+            </a>
+        {% endif %}
+    </body>
 </html>

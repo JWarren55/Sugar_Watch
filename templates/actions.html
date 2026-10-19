@@ -1,0 +1,4 @@
+{% macro actions(section, id) -%}
+    <a href="/entries/{{ section }}/{{ id }}/edit">Edit</a>
+    <a href="/entries/{{ section }}/{{ id }}/delete">Delete</a>
+{%- endmacro %}
