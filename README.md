@@ -1,77 +1,79 @@
 # Sugar Watch
 
-## Description
-A FastAPI application for tracking glucose, nutrition, exercise, medication, mood, and health measurements.
+Sugar Watch is a FastAPI application for recording glucose readings, nutrition,
+exercise, medication, mood, and health measurements. Data is stored in MySQL,
+and users authenticate with Google OpenID Connect.
 
-## Tools
+## Features
 
-- Python
+- Google sign-in with optional account restrictions and required production allowlists.
+- Health profiles with Imperial and Metric display preferences.
+- Food definitions, favorites, meal logging, and recorded nutrition totals.
+- Timestamped glucose, exercise, medication, mood, and measurement histories.
+- Paginated records with editing, soft deletion, restoration, and confirmed permanent deletion.
+- Account ownership checks, CSRF protection, and production session security.
 
-### Python pip installs
+## Requirements
 
-#### Web application
-- fastapi
-- uvicorn
-- jinja2
-- python-multipart
+- Python 3.12
+- MySQL
+- Google OAuth credentials for a Web application
 
-#### Google authentication
-- authlib
-- itsdangerous
-- httpx
-- python-dotenv
+## Local setup
 
-### MySQL database
-- sqlalchemy
-- pymysql
+Create a virtual environment and install the dependencies:
 
-### Run locally
-
-```
+```bash
+python3 -m venv .venv
 source .venv/bin/activate
-uvicorn main:app --reload
+python -m pip install -r requirements.txt
+cp .env.example .env
 ```
 
-## Timeline
+On Windows, activate the environment with `.venv\Scripts\Activate.ps1`.
 
-### Core
-- Account login
-- Input data
-    - From Dexcom
-    - Nutrition
-    - Exercise
-    - Mood
-        - Feeling
-        - Hunger
-        - Head clarity
-- Explore analysis
-    - Plots
-    - Averages
-    - Standard Deviation
-    - Blood Sugar Timeline
-    - Nutrition percentages
-    - Fasting effect and interval
-    - Mood timeline
+Configure `.env` with a MySQL connection URL, a random session secret, and the
+Google client ID and secret. Register this local OAuth redirect URI:
 
-### Connection
-- Viewer Account
-    - Allowed and restricted data
+```text
+http://127.0.0.1:8000/auth/google/callback
+```
 
-### Data Science
-- Baseline Model
-    - Predict glucose
-- What if? Model
-    - predict after food, exercise, and medication
+Start the development server:
 
-### Extra
-- Personalize dashboard
-- Camera to Chat GPT to estimate nutrition of food
+```bash
+python -m uvicorn main:app --reload
+```
 
-### Using Mysql
-- mysql -u sugar_watch_app -p
-- USE sugar_watch;
+Open `http://127.0.0.1:8000`. Startup creates missing database tables and applies
+recorded storage migrations. Back up existing data before upgrading.
 
+`ALLOWED_EMAILS` accepts comma-separated exact Google email addresses. An empty
+list permits verified Google accounts in development; production requires an
+explicit list. Each account can access only its own records.
 
-## Server deployment
+## Testing
 
-See [Ubuntu VM deployment and GitHub updates](docs/DEPLOYMENT.md).
+Run the isolated application, security, and migration checks:
+
+```bash
+python scripts/check_release.py
+```
+
+The release checks use disposable SQLite databases and mocked Google responses.
+They do not connect to the configured MySQL database. GitHub Actions runs the
+same checks on pushes and pull requests.
+
+`tests/check_mysql.py` separately checks the configured MySQL database using
+transactions that are rolled back; auto-increment counters may advance.
+
+## Deployment
+
+See [deployment configuration](docs/DEPLOYMENT.md) for production settings,
+service configuration, backups, and upgrades. Credentials and database exports
+must remain outside version control.
+
+## Planned functionality
+
+Dexcom import, charts, prediction models, and shared viewer access are not yet
+implemented.
