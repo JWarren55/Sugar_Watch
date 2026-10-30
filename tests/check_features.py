@@ -1,31 +1,21 @@
 """Run from the project root: PYTHONPATH=. .venv/bin/python tests/check_features.py"""
 
-import base64
-import json
 import runpy
 from math import isclose
 from unittest.mock import AsyncMock, patch
 
-from fastapi.testclient import TestClient
-from itsdangerous import TimestampSigner
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
+
+from tests.support import TestClient, sign_in
 
 # Load the application only after the test script configures its database.
 state = runpy.run_path("tests/check_sections.py")
 app, models, database = state["app"], state["models"], state["database"]
 
-from routes.entries import SECTIONS
+from entry_rules import SECTIONS
 
 stamp = "2026-10-19T14:30"
-
-
-def sign_in(client, user_id):
-    client.cookies.clear()
-    payload = base64.b64encode(json.dumps({"user_id": user_id}).encode())
-    client.cookies.set(
-        "session", TimestampSigner("integration-test").sign(payload).decode()
-    )
 
 
 with TestClient(app) as client:
@@ -42,6 +32,9 @@ with TestClient(app) as client:
         follow_redirects=False,
     )
     assert response.status_code == 303
+    with database.SessionLocal() as db:
+        assert isclose(db.query(models.HealthProfile).one().height, 70)
+    assert 'value="177.8"' in client.get("/health").text
     assert (
         client.post(
             "/health/measurements",
@@ -250,7 +243,7 @@ with TestClient(app) as client:
         "authorize_access_token",
         new=AsyncMock(
             return_value={
-                "userinfo": {
+                "userinfo": {"email_verified": True,
                     "sub": "test1",
                     "email": "one@example.test",
                     "name": "Test One",
@@ -268,12 +261,12 @@ with TestClient(app) as client:
         new=AsyncMock(side_effect=ValueError("cancelled")),
     ):
         assert (
-            "cancelled"
+            "failed"
             in client.get("/auth/google/callback", follow_redirects=False).headers[
                 "location"
             ]
         )
-    assert client.get("/logout", follow_redirects=False).is_redirect
+    assert client.post("/logout", follow_redirects=False).is_redirect
     assert (
         client.get("/medication", follow_redirects=False).headers["location"]
         == "/login"

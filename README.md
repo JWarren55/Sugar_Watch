@@ -71,36 +71,7 @@ uvicorn main:app --reload
 - mysql -u sugar_watch_app -p
 - USE sugar_watch;
 
-## Progress Report 1 verification
 
-Open http://127.0.0.1:8000/ for the registered Google sign-in callback.
+## Server deployment
 
-See [the report checklist](docs/PROGRESS_REPORT_1.md) for verified features,
-database evidence, and a demonstration walkthrough.
-
-Run from the project root:
-
-```bash
-PYTHONPATH=. .venv/bin/python tests/check_features.py
-PYTHONPATH=. .venv/bin/python tests/check_mysql.py
-```
-
-The feature checks use an isolated SQLite database. The MySQL check rolls back
-its demonstration inserts. Install the recorded environment with
-`pip install -r requirements.txt`.
-
-
-## Code style
-
-Use short, one-line comments to explain each main step:
-`#` in Python, `//` in JavaScript, and `<!-- -->` in HTML.
-Python and JavaScript use four-space indentation. Page scripts live in `static/`.
-
-Optional formatting tools:
-
-```bash
-pip install -r requirements-dev.txt
-ruff check .
-ruff format .
-djlint templates --reformat
-```
+See [Ubuntu VM deployment and GitHub updates](docs/DEPLOYMENT.md).

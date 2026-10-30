@@ -5,7 +5,9 @@ from fastapi.responses import RedirectResponse
 
 import models
 from database import SessionLocal
+from pagination import paginate
 from routes.common import templates
+from time_utils import to_utc
 from units import check_units, preferred_units, to_storage
 
 router = APIRouter()
@@ -14,9 +16,7 @@ router = APIRouter()
 @router.get("/health")
 def health_page(request: Request):
     # Load the user's profile and recent measurements.
-    user_id = request.session.get("user_id")
-    if not user_id:
-        return RedirectResponse("/login", status_code=303)
+    user_id = request.state.user.id
 
     with SessionLocal() as db:
         profile = (
@@ -27,20 +27,21 @@ def health_page(request: Request):
             )
             .first()
         )
-        entries = (
+        query = (
             db.query(models.HealthHistory)
             .filter(
                 models.HealthHistory.user_id == user_id,
                 models.HealthHistory.active.is_(True),
             )
-            .order_by(models.HealthHistory.timestamp.desc())
-            .limit(50)
-            .all()
+            .order_by(
+                models.HealthHistory.timestamp.desc(), models.HealthHistory.id.desc()
+            )
         )
+        entries, pagination = paginate(query, request)
         return templates.TemplateResponse(
             request=request,
             name="health.html",
-            context={"profile": profile, "entries": entries},
+            context={"profile": profile, "entries": entries, "pagination": pagination},
         )
 
 
@@ -52,10 +53,8 @@ def save_health_profile(
     date_of_birth: date = Form(...),
     preferred_units: str = Form(...),
 ):
-    # Save profile changes while keeping stored height in centimeters.
-    user_id = request.session.get("user_id")
-    if not user_id:
-        return RedirectResponse("/login", status_code=303)
+    # Save profile changes while keeping stored height in inches.
+    user_id = request.state.user.id
     if preferred_units not in ("imperial", "metric"):
         raise HTTPException(400, "Invalid preferred units")
     if sex not in ("Male", "Female", "Other"):
@@ -76,8 +75,8 @@ def save_health_profile(
         if profile is None:
             profile = models.HealthProfile(user_id=user_id, active=True)
             db.add(profile)
-        # Keep stored heights in centimeters so existing profiles remain valid.
-        profile.height = height * 2.54 if preferred_units == "imperial" else height
+        # Convert the entered height to inches before storing it.
+        profile.height = to_storage(height, "height", preferred_units)
         profile.sex = sex
         profile.date_of_birth = date_of_birth
         profile.preferred_units = preferred_units
@@ -88,18 +87,18 @@ def save_health_profile(
 @router.post("/health/measurements")
 def add_health_measurement(
     request: Request,
-    timestamp: datetime = Form(...),
+    timestamp: datetime | None = Form(None),
+    client_timezone: str = Form("America/Chicago"),
     weight: float | None = Form(None, gt=0, allow_inf_nan=False),
     waist: float | None = Form(None, gt=0, allow_inf_nan=False),
     measurement_units: str | None = Form(None),
 ):
     # Convert weight and waist to storage units before saving.
-    user_id = request.session.get("user_id")
-    if not user_id:
-        return RedirectResponse("/login", status_code=303)
+    user_id = request.state.user.id
     if weight is None and waist is None:
         raise HTTPException(400, "Enter weight and/or waist measurement")
 
+    timestamp = to_utc(timestamp, client_timezone)
     with SessionLocal() as db:
         units = check_units(measurement_units or preferred_units(db, user_id))
         db.add(

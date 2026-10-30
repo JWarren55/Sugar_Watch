@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta name="csrf-token" content="{{ csrf_token }}">
+        <meta name="current-user-id" content="{{ form_user_id or '' }}">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Permanently Delete - Sugar Watch</title>
+    </head>
+    <body>
+        <h1>Permanently delete {{ title }}?</h1>
+        <p>{{ summary }}</p>
+        {% if timestamp %}<p>{{ timestamp | local_time }}</p>{% endif %}
+        <p>This cannot be undone. Deleting a saved food leaves its recorded meals and nutrition intact.</p>
+        <form method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <label>
+                Type DELETE to confirm
+                <input name="confirmation" required autocomplete="off" pattern="DELETE">
+            </label>
+            <button type="submit">Permanently Delete</button>
+            <a href="/trash">Cancel</a>
+        </form>
+        <script src="/static/time.js" defer></script>
+        <script src="/static/forms.js" defer></script>
+    </body>
+</html>

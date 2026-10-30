@@ -1,0 +1,67 @@
+{% from 'pagination.html' import pager %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta name="csrf-token" content="{{ csrf_token }}">
+        <meta name="current-user-id" content="{{ form_user_id or '' }}">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Deleted Items - Sugar Watch</title>
+    </head>
+    <body>
+        <h1>Deleted Items</h1>
+        <p>Restore an item or permanently delete it. Permanent deletion cannot be undone.</p>
+        <p>
+            <a href="/">Back to Home</a>
+        </p>
+        <form method="get">
+            <label>
+                Section
+                <select name="section">
+                    <option value="all">All sections</option>
+                    {% for key,definition in sections.items() %}
+                        <option value="{{ key }}"
+                                {% if key==selected_section %}selected{% endif %}>{{ definition[1] }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <button type="submit">Filter</button>
+        </form>
+        {% if rows %}
+            <table border="1">
+                <thead>
+                    <tr>
+                        <th>Section</th>
+                        <th>Item</th>
+                        <th>Entry time</th>
+                        <th>Deleted</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in rows %}
+                        <tr>
+                            <td>{{ sections[row.section][1] }}</td>
+                            <td>{{ row.summary }} #{{ row.id }}</td>
+                            <td>{{ row.timestamp | local_time }}</td>
+                            <td>{{ row.deleted_at | local_time }}</td>
+                            <td>
+                                <form method="post"
+                                      action="/entries/{{ row.section }}/{{ row.id }}/restore">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                    <button type="submit">Restore</button>
+                                </form>
+                                <a href="/entries/{{ row.section }}/{{ row.id }}/purge">Permanently Delete</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No deleted items.</p>
+        {% endif %}
+        {{ pager(pagination,"Deleted items") }}
+        <script src="/static/time.js" defer></script>
+        <script src="/static/forms.js" defer></script>
+    </body>
+</html>

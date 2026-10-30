@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
+        <meta name="csrf-token" content="{{ csrf_token }}">
+        <meta name="current-user-id" content="{{ form_user_id or '' }}">
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Delete {{ title }} - Sugar Watch</title>
@@ -8,16 +10,19 @@
     <body>
         <h1>Delete {{ title }}?</h1>
         <p>{{ summary }}</p>
+        {% if timestamp %}<p>{{ timestamp | local_time }}</p>{% endif %}
         <p>
-            This entry will be removed from your active list.
+            This entry will move to Deleted Items, where you can restore or permanently delete it.
             {% if title == "Saved food" %}
                 Existing food history will remain available.
             {% endif %}
         </p>
         <form method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <button type="submit">Delete Entry</button>
             <a href="{{ back }}">Cancel</a>
         </form>
+        <script src="/static/time.js" defer></script>
         <script src="/static/forms.js" defer></script>
     </body>
 </html>

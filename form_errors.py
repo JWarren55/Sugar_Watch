@@ -6,8 +6,12 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.exc import SQLAlchemyError
 from starlette.exceptions import HTTPException
 
+from security import SignInRequired
+
 # Error pages must render even if the database is unavailable.
-templates = Jinja2Templates(directory="templates")
+from settings import BASE_DIR
+
+templates = Jinja2Templates(directory=BASE_DIR / "templates")
 
 logger = logging.getLogger(__name__)
 
@@ -15,11 +19,12 @@ logger = logging.getLogger(__name__)
 def back_path(request):
     path = request.url.path
     if path.startswith("/entries/"):
-        return path if path.endswith("/edit") else "/"
+        return path if path.endswith(("/edit", "/purge")) else "/trash"
     section = path.strip("/").split("/")[0]
     return (
         "/" + section
-        if section in ("food", "glucose", "exercise", "health", "medication", "mood")
+        if section
+        in ("food", "glucose", "exercise", "health", "medication", "mood", "trash")
         else "/"
     )
 
@@ -36,6 +41,12 @@ async def error_response(request, status, messages):
 
 
 def install_error_handlers(app):
+    @app.exception_handler(SignInRequired)
+    async def sign_in_required(request, exc):
+        from routes.common import login_response
+
+        return login_response(request)
+
     @app.exception_handler(RequestValidationError)
     async def validation_error(request, exc):
         messages = []

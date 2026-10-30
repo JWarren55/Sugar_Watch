@@ -5,7 +5,9 @@ from fastapi.responses import RedirectResponse
 
 import models
 from database import SessionLocal
+from pagination import paginate
 from routes.common import templates
+from time_utils import to_utc
 from units import check_units, preferred_units, to_storage
 
 router = APIRouter()
@@ -14,29 +16,31 @@ router = APIRouter()
 @router.get("/exercise")
 def exercise_page(request: Request):
     # Show the user's exercise history in their preferred units.
-    user_id = request.session.get("user_id")
-    if not user_id:
-        return RedirectResponse("/login", status_code=303)
+    user_id = request.state.user.id
     with SessionLocal() as db:
-        entries = (
+        query = (
             db.query(models.ExerciseEntry)
             .filter(
                 models.ExerciseEntry.user_id == user_id,
                 models.ExerciseEntry.active.is_(True),
             )
-            .order_by(models.ExerciseEntry.timestamp.desc())
-            .limit(50)
-            .all()
+            .order_by(
+                models.ExerciseEntry.timestamp.desc(), models.ExerciseEntry.id.desc()
+            )
         )
+        entries, pagination = paginate(query, request)
         return templates.TemplateResponse(
-            request=request, name="exercise.html", context={"entries": entries}
+            request=request,
+            name="exercise.html",
+            context={"entries": entries, "pagination": pagination},
         )
 
 
 @router.post("/exercise")
 def add_exercise(
     request: Request,
-    timestamp: datetime = Form(...),
+    timestamp: datetime | None = Form(None),
+    client_timezone: str = Form("America/Chicago"),
     length_minutes: float = Form(..., gt=0, allow_inf_nan=False),
     exercise_type: str = Form(...),
     intensity: str = Form(...),
@@ -46,9 +50,7 @@ def add_exercise(
     measurement_units: str | None = Form(None),
 ):
     # Convert distance to storage units before saving the entry.
-    user_id = request.session.get("user_id")
-    if not user_id:
-        return RedirectResponse("/login", status_code=303)
+    user_id = request.state.user.id
     if exercise_type not in ("Cardio", "Weights", "Task") or intensity not in (
         "Low",
         "Medium",
@@ -57,6 +59,7 @@ def add_exercise(
         from fastapi import HTTPException
 
         raise HTTPException(400, "Invalid exercise selection")
+    timestamp = to_utc(timestamp, client_timezone)
     with SessionLocal() as db:
         units = check_units(measurement_units or preferred_units(db, user_id))
         db.add(

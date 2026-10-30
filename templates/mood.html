@@ -1,14 +1,21 @@
+{% from 'pagination.html' import pager %}
 {% from 'actions.html' import actions %}
 <!DOCTYPE html>
 <html lang="en">
     <head>
+        <meta name="csrf-token" content="{{ csrf_token }}">
+        <meta name="current-user-id" content="{{ form_user_id or '' }}">
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Mood - Sugar Watch</title>
     </head>
     <body>
         <h1>Mood Entries</h1>
+        <p>
+            <a href="/trash">Deleted Items</a>
+        </p>
         <form method="post" action="/mood">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <p>
                 <label>
                     Date and time
@@ -54,7 +61,7 @@
             </p>
             <button type="submit">Save Mood</button>
         </form>
-        <h2>Recent Mood Entries</h2>
+        <h2>Mood History</h2>
         {% if entries %}
             <table border="1">
                 <thead>
@@ -69,7 +76,7 @@
                 <tbody>
                     {% for entry in entries %}
                         <tr>
-                            <td>{{ entry.timestamp }}</td>
+                            <td>{{ entry.timestamp | local_time }}</td>
                             <td>{{ entry.feeling or '-' }}</td>
                             <td>{{ entry.hunger or '-' }}</td>
                             <td>{{ entry.head or '-' }}</td>
@@ -84,6 +91,8 @@
         <p>
             <a href="/">Back to Home</a>
         </p>
+        {{ pager(pagination) }}
+        <script src="/static/time.js" defer></script>
         <script src="/static/forms.js" defer></script>
     </body>
 </html>

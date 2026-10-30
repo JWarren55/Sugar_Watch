@@ -1,15 +1,22 @@
+{% from 'pagination.html' import pager %}
 {% from 'actions.html' import actions %}
 <!DOCTYPE html>
 <html lang="en">
     <head>
+        <meta name="csrf-token" content="{{ csrf_token }}">
+        <meta name="current-user-id" content="{{ form_user_id or '' }}">
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Glucose - Sugar Watch</title>
     </head>
     <body>
         <h1>Glucose</h1>
+        <p>
+            <a href="/trash">Deleted Items</a>
+        </p>
         <h2>Add Reading</h2>
         <form method="post" action="/glucose">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <label for="glucose">Glucose (mg/dL)</label>
             <input type="number" id="glucose" name="glucose" min="20" max="600" required>
             <br>
@@ -21,7 +28,7 @@
             <button type="submit">Save Reading</button>
         </form>
         <hr>
-        <h2>Recent Readings</h2>
+        <h2>Glucose History</h2>
         {% if readings %}
             <table border="1">
                 <tr>
@@ -32,7 +39,7 @@
                 </tr>
                 {% for reading in readings %}
                     <tr>
-                        <td>{{ reading.timestamp }}</td>
+                        <td>{{ reading.timestamp | local_time }}</td>
                         <td>{{ reading.glucose }} mg/dL</td>
                         <td>{{ reading.source }}</td>
                         <td>{{ actions("glucose", reading.id) }}</td>
@@ -44,6 +51,8 @@
         {% endif %}
         <br>
         <a href="/">Back to Home</a>
+        {{ pager(pagination) }}
+        <script src="/static/time.js" defer></script>
         <script src="/static/forms.js" defer></script>
     </body>
 </html>

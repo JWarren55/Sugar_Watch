@@ -1,0 +1,37 @@
+{% macro pager(info, title="History") %}
+    <nav aria-label="{{ title }} pages">
+        <p>
+            {{ info.start }}–{{ info.end }} of {{ info.total }} · Page {{ info.page }} of {{ info.pages }}
+        </p>
+        {% if info.previous %}
+            <a href="{{ info.previous }}">Previous</a>
+        {% endif %}
+        {% if info.next %}
+            <a href="{{ info.next }}">Next</a>
+        {% endif %}
+        <form method="get" action="{{ info.path }}">
+            {% for key,value in info.hidden %}
+                <input type="hidden" name="{{ key }}" value="{{ value }}">
+            {% endfor %}
+            <label>
+                Page
+                <input type="number"
+                       name="{{ info.page_key }}"
+                       min="1"
+                       max="{{ info.pages }}"
+                       value="{{ info.page }}"
+                       required>
+            </label>
+            <label>
+                Items per page
+                <select name="{{ info.size_key }}">
+                    {% for size in info.choices %}
+                        <option value="{{ size }}"
+                                {% if size==info.per_page %}selected{% endif %}>{{ size }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <button type="submit">Go</button>
+        </form>
+    </nav>
+{% endmacro %}

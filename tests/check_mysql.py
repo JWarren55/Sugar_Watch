@@ -1,6 +1,6 @@
 """Verify real MySQL schema and INSERTs inside a rolled-back transaction."""
 
-from datetime import date, datetime
+from datetime import date
 from uuid import uuid4
 
 from sqlalchemy import func, inspect, select
@@ -8,6 +8,8 @@ from sqlalchemy.orm import Session
 
 import models
 from database import engine
+from nutrition import from_food
+from time_utils import utc_now
 
 
 def check():
@@ -50,12 +52,12 @@ def check():
                 )
                 db.add(food)
                 db.flush()
-                stamp = datetime.now().replace(microsecond=0)
+                stamp = utc_now().replace(microsecond=0)
                 db.add_all(
                     [
                         models.HealthProfile(
                             user_id=user_id,
-                            height=177.8,
+                            height=70.0,
                             sex="Male",
                             date_of_birth=date(1990, 1, 1),
                             preferred_units="imperial",
@@ -66,6 +68,7 @@ def check():
                         models.FoodEntry(
                             user_id=user_id,
                             food_item_id=food.id,
+                            nutrition_snapshot=from_food(food, 40, "g"),
                             timestamp=stamp,
                             amount=40,
                             unit="g",
@@ -98,6 +101,9 @@ def check():
                     ]
                 )
                 db.flush()
+                recorded = db.query(models.FoodEntry).filter_by(user_id=user_id).one()
+                assert recorded.nutrition_snapshot["totals"]["calories"] == 150
+                assert recorded.timestamp == stamp
                 for table in expected.values():
                     owner = table.c.id if table.name == "users" else table.c.user_id
                     assert (

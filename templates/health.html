@@ -1,18 +1,25 @@
+{% from 'pagination.html' import pager %}
 {% from 'actions.html' import actions %}
 <!DOCTYPE html>
 <html lang="en">
     <head>
+        <meta name="csrf-token" content="{{ csrf_token }}">
+        <meta name="current-user-id" content="{{ form_user_id or '' }}">
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Health - Sugar Watch</title>
     </head>
     <body>
         <h1>Health Profile and Measurements</h1>
+        <p>
+            <a href="/trash">Deleted Items</a>
+        </p>
         <h2>Profile</h2>
         <p>
             Choose Imperial for height in inches or Metric for centimeters. Changing units converts the height you entered. Save your profile to apply your unit preference to measurements and exercise distance.
         </p>
         <form method="post" action="/health/profile">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <p>
                 <label>
                     Preferred units
@@ -34,7 +41,7 @@
                        step="any"
                        min="0.1"
                        name="height"
-                       value="{{ (profile.height if metric else profile.height / 2.54) if profile else '' }}"
+                       value="{{ (profile.height * 2.54 if metric else profile.height) if profile else '' }}"
                        required>
             </p>
             <p>
@@ -62,6 +69,7 @@
         <hr>
         <h2>Record Measurements</h2>
         <form method="post" action="/health/measurements">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <input type="hidden" name="measurement_units" value="{{ saved_units }}">
             <p>
                 Measurement units follow your saved profile. Save changes above before recording measurements.
@@ -100,7 +108,7 @@
                 <tbody>
                     {% for entry in entries %}
                         <tr>
-                            <td>{{ entry.timestamp }}</td>
+                            <td>{{ entry.timestamp | local_time }}</td>
                             <td>{{ display(entry.weight, "weight") }}</td>
                             <td>{{ display(entry.waist, "waist") }}</td>
                             <td>{{ actions("health", entry.id) }}</td>
@@ -115,6 +123,8 @@
             <a href="/">Back to Home</a>
         </p>
         <script src="/static/health.js" defer></script>
+        {{ pager(pagination) }}
+        <script src="/static/time.js" defer></script>
         <script src="/static/forms.js" defer></script>
     </body>
 </html>

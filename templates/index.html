@@ -1,15 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
+        <meta name="csrf-token" content="{{ csrf_token }}">
+        <meta name="current-user-id" content="{{ form_user_id or '' }}">
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>{{ title }}</title>
     </head>
     <body>
         <h1>Sugar Watch</h1>
-        <!-- Show the result when Google sign-in is cancelled. -->
-        {% if request.query_params.get("login") == "cancelled" %}
-            <p>Google sign-in was cancelled.</p>
+        {% set login_messages = {
+            "cancelled": "Google sign-in was cancelled. You can try again.",
+            "configuration": "Google sign-in is not configured. Check the server's Google client settings.",
+            "provider": "Google sign-in is temporarily unavailable or rejected the request. Try again.",
+            "session": "The sign-in session expired or did not match. Start sign-in again.",
+            "database": "Sign-in reached the app, but the database could not complete the login. Try again.",
+            "profile": "Google did not return the account information needed to sign in.",
+            "unauthorized": "This Google account is not approved for Sugar Watch.",
+            "inactive": "This account is inactive.",
+            "failed": "Sign-in could not be completed. Please try again."
+        } %}
+        {% set login_result = request.query_params.get("login") %}
+        {% if login_result in login_messages %}
+            <p role="alert">{{ login_messages[login_result] }}</p>
         {% endif %}
         {% if user %}
             <!-- Show the signed-in user's account and tracking links. -->
@@ -19,7 +32,6 @@
                 <img src="{{ user.picture }}" alt="Profile picture" width="80">
             {% endif %}
             <br>
-            </br>
             <p>
                 <a href="/glucose">Glucose Readings</a>
             </p>
@@ -40,7 +52,14 @@
             </p>
             <br>
             <br>
-            <a href="/logout">Log out</a>
+            <p>
+                <a href="/trash">Deleted Items</a>
+            </p>
+            <form method="post" action="/logout">
+                <input type="hidden"
+                       name="csrf_token"
+                       value="{{ csrf_token }}"><button type="submit">Log out</button>
+            </form>
         {% else %}
             <!-- Offer Google sign-in when no account is connected. -->
             <p>Track your glucose, food, and exercise.</p>

@@ -17,10 +17,10 @@ Verification date: October 19, 2026. Report due: October 22, 2026.
 - Health profile saves height, sex, date of birth, and preferred units.
 - Imperial is the default: height/waist in inches, weight in lb, distance in miles.
 - Metric uses cm, kg, and km. Changing the profile selector converts height immediately. Save the profile before using the new units on measurement and exercise forms.
-- Existing stored units remain cm for height, lb for weight, inches for waist, and miles for distance; no destructive data migration is needed.
+- Storage uses inches for height/waist, pounds for weight, and miles for distance. The recorded height migration converts older centimeter values once and retains their originals in schema_migrations.
 - Food amounts retain the unit explicitly selected for that food; nutrient quantities retain their nutrition-label units. Glucose remains mg/dL.
 - Histories have Edit and Delete controls. Saved food definitions can also be edited or deleted. Profile changes use Update Profile.
-- Deletes mark records inactive; history for a deleted saved food remains available. There is no user-facing restore screen yet.
+- Deletes move records to Deleted Items. Users can restore entries or type DELETE on a confirmation page to permanently remove them. Purging a saved food preserves its recorded meals and nutrition.
 - Each edit/delete request verifies the signed-in user's ownership. Food logging and favorites also enforce ownership.
 - Invalid input shows a message above the form while preserving the entered values. Database failures show a safe retry message. Without JavaScript, an HTML error page offers navigation back.
 - Batch food logging validates the entire batch before inserting records.
@@ -39,6 +39,8 @@ Verification date: October 19, 2026. Report due: October 22, 2026.
 | exercise_entries | Duration, type, intensity, heart rate, distance |
 | medication_entries | Medication name, optional dose/unit |
 | mood_entries | Feeling, hunger, headache |
+
+The schema_migrations table records applied conversions and the original height backup.
 
 Each tracking table links to users through user_id. Food entries and favorites also link to food_items.
 
@@ -100,3 +102,63 @@ FROM medication_entries WHERE user_id = @demo_user_id ORDER BY timestamp DESC LI
 The browser reached Google's real sign-in page using 127.0.0.1; no account credentials were entered by the agent. Finish a fresh Google sign-in and logout in your normal browser before presenting. The earlier signed-in screenshot and mocked callback checks are supporting evidence, not a substitute for this final live walkthrough.
 
 Dexcom import, charts, predictions, and sharing/viewer accounts belong to later milestones.
+
+
+## History improvements — October 21, 2026
+
+- Timestamp columns use UTC; browser scripts show the viewer's local timezone.
+  Date/time forms default to now and can be corrected or backdated.
+  API clients should send offset-aware ISO timestamps. Without browser scripts,
+  naive date/time values are interpreted as America/Chicago.
+- Legacy entry timestamps were converted once from America/Chicago, as confirmed
+  by the user. Account creation timestamps were already UTC and remain unchanged.
+- Food entries store their own name, serving basis, nutrient units, and totals.
+  Editing a saved food affects future logs. Existing entries were frozen using
+  the food definitions available during migration; older overwritten definitions
+  cannot be reconstructed.
+- Food edit modes: scale the recorded nutrition, explicitly recalculate from the
+  current saved food, or enter corrected totals for just that entry.
+- Food weights use grams; volumes use mL; count units stay explicit.
+  Nutrients use kcal, g, mg, and mcg. Compatible units convert automatically.
+  Mass-to-volume or piece-to-weight conversions require missing density or
+  serving-weight information and are rejected rather than guessed.
+- Body measurements retain Imperial storage with optional Metric input/display.
+- Histories and saved foods use bounded pages, defaulting to 25 entries.
+  Page controls include Previous/Next, a page number, and 10/25/50/100 items.
+- Deleted Items is restricted to the account owner and supports section filters.
+  Restoring removes an item from trash. Permanent deletion is only allowed from
+  trash after typed confirmation and removes the live record. Existing offline
+  backups are separate from the application.
+- Google cancellation, provider/state errors, missing account data, inactive
+  accounts, and database failures now have separate messages. Expired AJAX
+  sessions preserve the form and offer sign-in in another tab.
+
+Additional checks:
+
+```bash
+PYTHONPATH=. .venv/bin/python tests/check_history_features.py
+PYTHONPATH=. .venv/bin/python tests/check_history_migration.py
+```
+
+
+## Security and readability cleanup — October 21, 2026
+
+- One shared dependency verifies active accounts for protected routes.
+- All POST forms include a session-bound CSRF token and check request origin.
+- Logout uses POST; visiting its GET confirmation leaves the session unchanged.
+- Session cookies use HttpOnly/SameSite flags with an eight-hour lifetime;
+  production mode requires HTTPS cookies, a longer secret, and explicit hosts.
+- Private responses are not cached, pages cannot be framed, and form bodies are
+  bounded before parsing.
+- Edit rules use an explicit field allowlist. Validation, edit routes, and
+  deleted-item routes now have separate responsibilities.
+- Database sessions use context managers; shared test helpers remove repeated
+  sign-in and token-handling code.
+- Expired forms can refresh their token after the same account signs back in.
+  Switching to a different account requires reloading the original form.
+- Targeted security, feature, browser, and real-MySQL rollback checks passed.
+  The cleanup did not change the database models or migration definitions.
+
+```bash
+PYTHONPATH=. .venv/bin/python tests/check_security.py
+```

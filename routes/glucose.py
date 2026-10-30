@@ -5,7 +5,9 @@ from fastapi.responses import RedirectResponse
 
 import models
 from database import SessionLocal
+from pagination import paginate
 from routes.common import templates
+from time_utils import to_utc
 
 router = APIRouter()
 
@@ -13,30 +15,25 @@ router = APIRouter()
 @router.get("/glucose")
 def glucose_page(request: Request):
     # Show the user's most recent glucose readings.
-    user_id = request.session.get("user_id")
+    user_id = request.state.user.id
 
-    if not user_id:
-        return RedirectResponse(url="/login")
-
-    db = SessionLocal()
-
-    try:
-        readings = (
+    with SessionLocal() as db:
+        query = (
             db.query(models.GlucoseReading)
             .filter(
                 models.GlucoseReading.user_id == user_id,
                 models.GlucoseReading.active.is_(True),
             )
-            .order_by(models.GlucoseReading.timestamp.desc())
-            .limit(50)
-            .all()
+            .order_by(
+                models.GlucoseReading.timestamp.desc(), models.GlucoseReading.id.desc()
+            )
         )
-
-    finally:
-        db.close()
+        readings, pagination = paginate(query, request)
 
     return templates.TemplateResponse(
-        request=request, name="glucose.html", context={"readings": readings}
+        request=request,
+        name="glucose.html",
+        context={"readings": readings, "pagination": pagination},
     )
 
 
@@ -44,19 +41,15 @@ def glucose_page(request: Request):
 def add_glucose(
     request: Request,
     glucose: int = Form(..., ge=20, le=600),
-    timestamp: datetime = Form(...),
+    timestamp: datetime | None = Form(None),
+    client_timezone: str = Form("America/Chicago"),
 ):
     # Save a validated reading for the signed-in user.
-    user_id = request.session.get("user_id")
+    user_id = request.state.user.id
 
-    if not user_id:
-        return RedirectResponse(url="/login", status_code=303)
+    reading_time = to_utc(timestamp, client_timezone)
 
-    reading_time = timestamp
-
-    db = SessionLocal()
-
-    try:
+    with SessionLocal() as db:
         reading = models.GlucoseReading(
             user_id=user_id,
             glucose=glucose,
@@ -67,8 +60,5 @@ def add_glucose(
 
         db.add(reading)
         db.commit()
-
-    finally:
-        db.close()
 
     return RedirectResponse(url="/glucose", status_code=303)

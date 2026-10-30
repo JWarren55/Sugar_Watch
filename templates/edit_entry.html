@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
+        <meta name="csrf-token" content="{{ csrf_token }}">
+        <meta name="current-user-id" content="{{ form_user_id or '' }}">
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Edit {{ title }} - Sugar Watch</title>
@@ -9,10 +11,11 @@
         <h1>Edit {{ title }}</h1>
         {% if section == "food-item" %}
             <p>
-                Nutrition values are per serving. Changes also update calculated nutrition for entries using this food.
+                Nutrition values are per serving. Changes affect future entries; previously logged nutrition stays unchanged.
             </p>
         {% endif %}
         <form method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <input type="hidden"
                    name="measurement_units"
                    value="{{ measurement_units }}">
@@ -20,7 +23,10 @@
                 <p>
                     <label for="{{ field.name }}">{{ field.label }}</label>
                     {% if field.name == "food_item_id" %}
-                        <select id="{{ field.name }}" name="{{ field.name }}" required>
+                        <select id="{{ field.name }}" name="{{ field.name }}">
+                            {% if not values[field.name] %}
+                                <option value="">Keep recorded food</option>
+                            {% endif %}
                             {% for food in foods %}
                                 <option value="{{ food.id }}"
                                         {% if food.id == values[field.name] %}selected{% endif %}>{{ food.name }}
@@ -46,16 +52,50 @@
                         <input id="{{ field.name }}"
                                name="{{ field.name }}"
                                type="{{ field.kind }}"
-                               value="{{ values[field.name] }}"
+                               value="{{ values[field.name] if field.kind != 'datetime-local' else '' }}"
+                               {% if field.kind == 'datetime-local' %}data-utc="{{ values[field.name] }}"{% endif %}
                                {% if field.kind == 'number' %}step="any"{% endif %}
                                {% if field.maxlength %} maxlength="{{ field.maxlength }}"{% endif %}
                                {% if field.required %} required{% endif %}>
                     {% endif %}
                 </p>
             {% endfor %}
+            {% if section == "food" %}
+                <fieldset>
+                    <legend>Recorded nutrition</legend>
+                    <p>Totals below apply to this entry only.</p>
+                    <label>
+                        Nutrition update
+                        <select name="nutrition_mode">
+                            <option value="scale">Keep recorded nutrition; scale if amount changes</option>
+                            <option value="current">Use current saved food (recalculate)</option>
+                            <option value="manual">Use manually corrected totals below</option>
+                        </select>
+                    </label>
+                    <details>
+                        <summary>Correct nutrition totals</summary>
+                        <p>
+                            Choose "Use manually corrected totals" above to save these values. Blank means unknown, not zero.
+                        </p>
+                        {% for nutrient,unit in nutrient_units.items() %}
+                            <p>
+                                <label>
+                                    {{ nutrient.replace('_', ' ').capitalize() }} ({{ unit }})
+                                    <input type="number"
+                                           step="any"
+                                           min="0"
+                                           name="nutrition_{{ nutrient }}"
+                                           value="{{ snapshot.get('totals', {}).get(nutrient) if snapshot.get('totals',{}).get(nutrient) is not none else '' }}">
+                                </label>
+                            </p>
+                        {% endfor %}
+                    </details>
+                </fieldset>
+            {% endif %}
             <button type="submit">Save Changes</button>
             <a href="{{ back }}">Cancel</a>
         </form>
+        <script src="/static/time.js" defer></script>
         <script src="/static/forms.js" defer></script>
     </body>
 </html>

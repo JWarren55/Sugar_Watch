@@ -9,6 +9,11 @@ select = ["E4", "E7", "E9", "F", "I"]
 [tool.ruff.lint.per-file-ignores]
 "tests/check_sections.py" = ["E402"]
 "tests/check_features.py" = ["E402"]
+"tests/check_history_features.py" = ["E402"]
+"tests/check_security.py" = ["E402"]
+"tests/check_deployment.py" = ["E402"]
+"tests/check_history_migration.py" = ["E402"]
+"tests/check_storage_migration.py" = ["E402"]
 
 [tool.djlint]
 profile = "jinja"

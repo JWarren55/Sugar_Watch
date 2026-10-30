@@ -5,8 +5,10 @@ from fastapi.responses import RedirectResponse
 
 import models
 from database import SessionLocal
+from entry_rules import validate_values
+from pagination import paginate
 from routes.common import templates
-from routes.entries import validate_values
+from time_utils import to_utc
 
 router = APIRouter()
 
@@ -14,41 +16,40 @@ router = APIRouter()
 @router.get("/mood")
 def mood_page(request: Request):
     # Show the user's recent mood measurements.
-    user_id = request.session.get("user_id")
-    if not user_id:
-        return RedirectResponse("/login", status_code=303)
+    user_id = request.state.user.id
     with SessionLocal() as db:
-        entries = (
+        query = (
             db.query(models.MoodEntry)
             .filter(
                 models.MoodEntry.user_id == user_id, models.MoodEntry.active.is_(True)
             )
-            .order_by(models.MoodEntry.timestamp.desc())
-            .limit(50)
-            .all()
+            .order_by(models.MoodEntry.timestamp.desc(), models.MoodEntry.id.desc())
         )
+        entries, pagination = paginate(query, request)
         return templates.TemplateResponse(
-            request=request, name="mood.html", context={"entries": entries}
+            request=request,
+            name="mood.html",
+            context={"entries": entries, "pagination": pagination},
         )
 
 
 @router.post("/mood")
 def add_mood(
     request: Request,
-    timestamp: datetime = Form(...),
+    timestamp: datetime | None = Form(None),
+    client_timezone: str = Form("America/Chicago"),
     feeling: str | None = Form(None, max_length=30),
     hunger: str | None = Form(None, max_length=30),
     head: str | None = Form(None, max_length=30),
 ):
     # Save the entry after checking that a mood measurement was selected.
-    user_id = request.session.get("user_id")
-    if not user_id:
-        return RedirectResponse("/login", status_code=303)
+    user_id = request.state.user.id
     if not any((feeling, hunger, head)):
         raise HTTPException(
             status_code=400, detail="Enter at least one mood measurement."
         )
 
+    timestamp = to_utc(timestamp, client_timezone)
     validate_values(
         "mood",
         {"timestamp": timestamp, "feeling": feeling, "hunger": hunger, "head": head},

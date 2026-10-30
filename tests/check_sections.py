@@ -4,13 +4,10 @@ import os
 
 os.environ["DATABASE_URL"] = "sqlite://"
 os.environ["SECRET_KEY"] = "integration-test"
-import base64
-import json
 from collections import Counter
 from html.parser import HTMLParser
 
-from itsdangerous import TimestampSigner
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.pool import StaticPool
 
 import database
@@ -19,11 +16,18 @@ import database
 database.engine = create_engine(
     "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
 )
-database.SessionLocal.configure(bind=database.engine)
-from fastapi.testclient import TestClient
 
+
+# Match MySQL foreign-key behavior when testing restore and permanent deletion.
+@event.listens_for(database.engine, "connect")
+def enable_foreign_keys(connection, record):
+    connection.execute("PRAGMA foreign_keys=ON")
+
+
+database.SessionLocal.configure(bind=database.engine)
 import models
 from main import app
+from tests.support import TestClient, sign_in
 
 
 class Forms(HTMLParser):
@@ -78,13 +82,7 @@ with TestClient(app) as client:
         r = client.get("/" + section, follow_redirects=False)
         assert r.is_redirect and r.headers["location"] == "/login", (section, r.text)
 
-    def sign_in(user_id):
-        payload = base64.b64encode(json.dumps({"user_id": user_id}).encode())
-        client.cookies.set(
-            "session", TimestampSigner("integration-test").sign(payload).decode()
-        )
-
-    sign_in(1)
+    sign_in(client, 1)
     home = client.get("/")
     assert home.status_code == 200 and "<h1>Sugar Watch</h1>" in home.text
     for section, heading in sections.items():
@@ -152,7 +150,7 @@ with TestClient(app) as client:
         },
     )
     with database.SessionLocal() as db:
-        assert abs(db.query(models.HealthProfile).one().height - 177.8) < 1e-9
+        assert abs(db.query(models.HealthProfile).one().height - 70) < 1e-9
     assert 'value="70.0"' in client.get("/health").text
     post(
         "/health/profile",
@@ -164,12 +162,12 @@ with TestClient(app) as client:
         },
     )
     with database.SessionLocal() as db:
-        assert db.query(models.HealthProfile).one().height == 176
+        assert abs(db.query(models.HealthProfile).one().height - 176 / 2.54) < 1e-9
     assert 'id="height-unit">cm</span>' in client.get("/health").text
-    # Existing centimeter values must render as inches when Imperial is selected.
+    # Stored inches must remain unchanged when Imperial is selected.
     with database.SessionLocal() as db:
         profile = db.query(models.HealthProfile).one()
-        profile.height = 177.8
+        profile.height = 70.0
         profile.preferred_units = "imperial"
         db.commit()
     assert 'value="70.0"' in client.get("/health").text
@@ -210,7 +208,7 @@ with TestClient(app) as client:
         ).status_code
         == 400
     )
-    sign_in(2)
+    sign_in(client, 2)
     for path, private_value in [
         ("/medication", "Test medication"),
         ("/glucose", "143 mg/dL"),

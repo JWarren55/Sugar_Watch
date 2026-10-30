@@ -1,10 +1,25 @@
-"""Display conversions; retain existing database units (cm, lb, inches, miles)."""
+"""Convert Imperial storage units to and from the user's display preference."""
 
 from fastapi import HTTPException
 
 import models
 
-FACTORS = {"height": 1.0, "weight": 0.45359237, "waist": 2.54, "distance": 1.609344}
+UNIT_LABELS = {
+    "imperial": {
+        "height": "inches",
+        "weight": "lb",
+        "waist": "inches",
+        "distance": "miles",
+    },
+    "metric": {"height": "cm", "weight": "kg", "waist": "cm", "distance": "km"},
+}
+
+
+def labels_for(units):
+    return UNIT_LABELS[check_units(units)]
+
+
+FACTORS = {"height": 2.54, "weight": 0.45359237, "waist": 2.54, "distance": 1.609344}
 
 
 def preferred_units(db, user_id):
@@ -28,14 +43,10 @@ def check_units(value):
 def to_display(value, field, units):
     if value is None:
         return None
-    if field == "height":
-        return value if units == "metric" else value / 2.54
     return value * FACTORS[field] if units == "metric" else value
 
 
 def to_storage(value, field, units):
     if value is None:
         return None
-    if field == "height":
-        return value if units == "metric" else value * 2.54
     return value / FACTORS[field] if units == "metric" else value

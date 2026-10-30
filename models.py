@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from sqlalchemy import (
+    JSON,
     Boolean,
     Column,
     Date,
@@ -33,6 +34,7 @@ class HealthProfile(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    # Store height in inches, regardless of the display preference.
     height = Column(Float, nullable=False)
     sex = Column(String(6), nullable=False)
     date_of_birth = Column(Date, nullable=False)
@@ -50,6 +52,7 @@ class HealthHistory(Base):
     weight = Column(Float, nullable=True)
     waist = Column(Float, nullable=True)
     active = Column(Boolean, default=True, nullable=False)
+    deleted_at = Column(DateTime, nullable=True)
 
 
 # Record the amount of a saved food eaten at a given time.
@@ -61,10 +64,13 @@ class FoodEntry(Base):
     food_item_id = Column(
         Integer, ForeignKey("food_items.id"), nullable=True, index=True
     )
+    # Store the food name, serving basis, and nutrition totals at log time.
+    nutrition_snapshot = Column(JSON, nullable=True)
     timestamp = Column(DateTime, nullable=False, index=True)
     amount = Column(Float, nullable=False)
     unit = Column(String(50), nullable=False)
     active = Column(Boolean, default=True, nullable=False)
+    deleted_at = Column(DateTime, nullable=True)
 
 
 # Store exercise duration, intensity, and optional measurements.
@@ -81,6 +87,7 @@ class ExerciseEntry(Base):
     peak_heart_rate = Column(Integer, nullable=True)
     distance = Column(Float, nullable=True)
     active = Column(Boolean, default=True, nullable=False)
+    deleted_at = Column(DateTime, nullable=True)
 
 
 # Record a medication and its optional dose.
@@ -94,6 +101,7 @@ class MedicationEntry(Base):
     dose = Column(Float, nullable=True)
     unit = Column(String(50), nullable=True)
     active = Column(Boolean, default=True, nullable=False)
+    deleted_at = Column(DateTime, nullable=True)
 
 
 # Track feeling, hunger, and headache measurements.
@@ -107,6 +115,7 @@ class MoodEntry(Base):
     hunger = Column(String(30), nullable=True)
     head = Column(String(30), nullable=True)
     active = Column(Boolean, default=True, nullable=False)
+    deleted_at = Column(DateTime, nullable=True)
 
 
 # Store manual or imported blood glucose readings.
@@ -119,6 +128,7 @@ class GlucoseReading(Base):
     timestamp = Column(DateTime, nullable=False, index=True)
     source = Column(String(50), nullable=True)
     active = Column(Boolean, default=True, nullable=False)
+    deleted_at = Column(DateTime, nullable=True)
 
 
 # Store nutrition values for one serving of a saved food.
@@ -151,6 +161,7 @@ class FoodItem(Base):
     external_id = Column(String(100), nullable=True)
     barcode = Column(String(50), nullable=True, index=True)
     active = Column(Boolean, default=True, nullable=False)
+    deleted_at = Column(DateTime, nullable=True)
 
 
 # Keep track of each user's favorite saved foods.

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta name="csrf-token" content="{{ csrf_token }}">
+        <meta name="current-user-id" content="{{ form_user_id or '' }}">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Log out - Sugar Watch</title>
+    </head>
+    <body>
+        <h1>Log out?</h1>
+        <form method="post" action="/logout">
+            <input type="hidden"
+                   name="csrf_token"
+                   value="{{ csrf_token }}"><button type="submit">Log out</button>
+            <a href="/">Cancel</a>
+        </form>
+    </body>
+</html>
