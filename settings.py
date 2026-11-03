@@ -19,6 +19,7 @@ class Settings:
     allowed_emails: tuple[str, ...] = field(default=(), repr=False)
     session_max_age: int = 8 * 60 * 60
     max_body_bytes: int = 1024 * 1024
+    usda_api_key: str = field(default="", repr=False)
 
     @classmethod
     def from_mapping(cls, values):
@@ -52,7 +53,9 @@ class Settings:
             if email.strip()
         )
         if production and not emails:
-            raise ValueError("Production ALLOWED_EMAILS must name approved Google accounts.")
+            raise ValueError(
+                "Production ALLOWED_EMAILS must name approved Google accounts."
+            )
         if any(
             email.count("@") != 1
             or not all(email.split("@"))
@@ -60,13 +63,16 @@ class Settings:
             or any(c.isspace() for c in email)
             for email in emails
         ):
-            raise ValueError("ALLOWED_EMAILS must contain exact email addresses, not patterns.")
+            raise ValueError(
+                "ALLOWED_EMAILS must contain exact email addresses, not patterns."
+            )
         return cls(
             secret,
             database_url,
             production,
             hosts or ("localhost", "127.0.0.1", "testserver"),
             emails,
+            usda_api_key=values.get("USDA_API_KEY", "").strip(),
         )
 
     def permits_email(self, email):

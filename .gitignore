@@ -20,3 +20,5 @@ backups/
 *.db
 *.bak
 *.sql.*
+
+dist/

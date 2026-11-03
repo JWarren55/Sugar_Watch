@@ -1,0 +1,12 @@
+[Unit]
+Description=Collect Libre readings every five minutes
+
+[Timer]
+OnCalendar=*-*-* *:00/5:00
+RandomizedDelaySec=15
+AccuracySec=1s
+Persistent=true
+Unit=sugar-watch-libre-sync.service
+
+[Install]
+WantedBy=timers.target

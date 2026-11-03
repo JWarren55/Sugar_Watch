@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from fastapi import APIRouter, Form, Request
+from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import RedirectResponse
 
 import models
@@ -33,7 +33,12 @@ def glucose_page(request: Request):
     return templates.TemplateResponse(
         request=request,
         name="glucose.html",
-        context={"readings": readings, "pagination": pagination},
+        context={
+            "readings": readings,
+            "pagination": pagination,
+            "imported": request.query_params.get("imported"),
+            "skipped": request.query_params.get("skipped"),
+        },
     )
 
 
@@ -62,3 +67,43 @@ def add_glucose(
         db.commit()
 
     return RedirectResponse(url="/glucose", status_code=303)
+
+
+@router.post("/glucose/import/libreview")
+async def import_libreview(
+    request: Request,
+    file: UploadFile = File(...),
+    timezone_name: str = Form(...),
+    date_order: str = Form(...),
+):
+    from libre_import import parse_libreview
+
+    content = await file.read(4 * 1024 * 1024 + 1)
+    await file.close()
+    if len(content) > 4 * 1024 * 1024:
+        raise HTTPException(413, "Export is too large; choose a shorter date range.")
+    try:
+        rows, ignored = parse_libreview(content, timezone_name, date_order)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc))
+    user_id = request.state.user.id
+    imported = skipped = 0
+    with SessionLocal() as db:
+        # Serialize imports per account, including overlapping uploads, on MySQL.
+        db.query(models.User).filter(models.User.id == user_id).with_for_update().one()
+        for row in rows:
+            existing = (
+                db.query(models.GlucoseReading)
+                .filter_by(user_id=user_id, import_key=row["import_key"])
+                .first()
+            )
+            if existing:
+                skipped += 1
+                continue
+            db.add(models.GlucoseReading(user_id=user_id, active=True, **row))
+            imported += 1
+            db.flush()
+        db.commit()
+    return RedirectResponse(
+        f"/glucose?imported={imported}&skipped={skipped}", status_code=303
+    )

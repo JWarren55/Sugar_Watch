@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="csrf-token" content="{{ csrf_token }}">
+        <meta name="current-user-id" content="{{ form_user_id or '' }}">
+        <title>Review Food - Sugar Watch</title>
+    </head>
+    <body>
+        {% include "navigation.html" %}
+        <h1>{{ food.name }}</h1>
+        {% if food.brand %}<p>{{ food.brand }}</p>{% endif %}
+        <p><a href="/food/catalog">Back to Food Search</a></p>
+        <p><strong>Nutrition basis: 100 g.</strong> This is a reference amount, not the amount you ate. After saving, enter the actual amount when logging a meal.</p>
+        <p>Missing values are unknown, not zero. Check the product label when available.</p>
+        <table border="1">
+            <tr>
+                <th>Nutrient</th>
+                <th>Per 100 g</th>
+            </tr>
+            {% for field, unit in nutrient_units.items() %}
+                <tr><td>{{ field | replace('_', ' ') | capitalize }}</td><td>{% if food[field] is not none %}{{ food[field] | round(3) }} {{ unit }}{% else %}Unknown{% endif %}</td></tr>
+            {% endfor %}
+        </table>
+        <form method="post" action="/food/catalog/save">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <input type="hidden" name="review_token" value="{{ review_token }}">
+            <button type="submit">Save to My Foods</button>
+        </form>
+        <p>Saving adds a food definition; it does not log a meal. You can edit the saved food later.</p>
+        <p>Source: <a href="https://fdc.nal.usda.gov/food-details/{{ fdc_id }}/nutrients"
+    target="_blank"
+    rel="noopener noreferrer">USDA FoodData Central, food {{ fdc_id }}</a>.</p>
+        <script src="/static/forms.js" defer></script>
+    </body>
+</html>

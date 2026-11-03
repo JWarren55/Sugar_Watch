@@ -8,6 +8,7 @@
         <title>Delete {{ title }} - Sugar Watch</title>
     </head>
     <body>
+        {% include "navigation.html" %}
         <h1>Delete {{ title }}?</h1>
         <p>{{ summary }}</p>
         {% if timestamp %}<p>{{ timestamp | local_time }}</p>{% endif %}

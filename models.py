@@ -4,10 +4,12 @@ from sqlalchemy import (
     JSON,
     Boolean,
     Column,
+    Computed,
     Date,
     DateTime,
     Float,
     ForeignKey,
+    Index,
     Integer,
     String,
 )
@@ -31,6 +33,12 @@ class User(Base):
 # Store the user's profile and preferred display units.
 class HealthProfile(Base):
     __tablename__ = "health_profile"
+    __table_args__ = (
+        Index("uq_active_health_profile", "active_profile_user_id", unique=True),
+    )
+    active_profile_user_id = Column(
+        Integer, Computed("CASE WHEN active = 1 THEN user_id ELSE NULL END")
+    )
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
@@ -121,6 +129,10 @@ class MoodEntry(Base):
 # Store manual or imported blood glucose readings.
 class GlucoseReading(Base):
     __tablename__ = "glucose_readings"
+    __table_args__ = (
+        Index("uq_user_glucose_import", "user_id", "import_key", unique=True),
+    )
+    import_key = Column(String(64), nullable=True)
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
@@ -167,6 +179,9 @@ class FoodItem(Base):
 # Keep track of each user's favorite saved foods.
 class FavoriteFood(Base):
     __tablename__ = "favorite_foods"
+    __table_args__ = (
+        Index("uq_user_favorite", "user_id", "food_item_id", unique=True),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)

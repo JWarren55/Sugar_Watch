@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Find Food - Sugar Watch</title>
+    </head>
+    <body>
+        {% include "navigation.html" %}
+        <h1>Find Food</h1>
+        <p><a href="/food">Back to Food</a></p>
+        <p>Search common foods and branded products from USDA FoodData Central. Review a result before saving it to your foods.</p>
+        <form method="get" action="/food/catalog">
+            <label for="catalog-query">Food name, brand, or barcode</label>
+            <input id="catalog-query"
+                   name="q"
+                   value="{{ query }}"
+                   maxlength="120"
+                   required>
+            <button type="submit">Search</button>
+        </form>
+        {% if error %}<p role="alert">{{ error }}</p>{% endif %}
+        {% if query and not foods and not error %}<p>No matching foods found. Try a different name or brand.</p>{% endif %}
+        {% if foods %}
+            <table border="1">
+                <tr>
+                    <th>Food</th>
+                    <th>Brand</th>
+                    <th>Type</th>
+                    <th>Nutrition</th>
+                </tr>
+                {% for food in foods %}
+                    <tr>
+                        <td>{{ food.name }}</td>
+                        <td>{{ food.brand or '—' }}</td>
+                        <td>{{ food.kind }}</td>
+                        <td><a href="/food/catalog/{{ food.id }}">Review food</a></td>
+                    </tr>
+                {% endfor %}
+            </table>
+            {% if page > 1 %}<a href="/food/catalog?q={{ query | urlencode }}&amp;page={{ page - 1 }}">Previous</a>{% endif %}
+            {% if next_page %}<a href="/food/catalog?q={{ query | urlencode }}&amp;page={{ page + 1 }}">Next</a>{% endif %}
+        {% endif %}
+        <p>Source: <a href="https://fdc.nal.usda.gov/"
+    target="_blank"
+    rel="noopener noreferrer">USDA FoodData Central</a>.</p>
+    </body>
+</html>

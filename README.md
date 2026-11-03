@@ -10,6 +10,8 @@ and users authenticate with Google OpenID Connect.
 - Health profiles with Imperial and Metric display preferences.
 - Food definitions, favorites, meal logging, and recorded nutrition totals.
 - Timestamped glucose, exercise, medication, mood, and measurement histories.
+- LibreView CSV imports and automatic LibreLinkUp glucose collection every five minutes.
+- USDA FoodData Central search with nutrition review and saved food imports.
 - Paginated records with editing, soft deletion, restoration, and confirmed permanent deletion.
 - Account ownership checks, CSRF protection, and production session security.
 
@@ -18,6 +20,7 @@ and users authenticate with Google OpenID Connect.
 - Python 3.12
 - MySQL
 - Google OAuth credentials for a Web application
+- Optional: LibreLinkUp sharing credentials and a USDA FoodData Central API key
 
 ## Local setup
 
@@ -60,7 +63,7 @@ Run the isolated application, security, and migration checks:
 python scripts/check_release.py
 ```
 
-The release checks use disposable SQLite databases and mocked Google responses.
+The release checks use disposable SQLite databases and mocked provider responses.
 They do not connect to the configured MySQL database. GitHub Actions runs the
 same checks on pushes and pull requests.
 
@@ -75,5 +78,23 @@ must remain outside version control.
 
 ## Planned functionality
 
-Dexcom import, charts, prediction models, and shared viewer access are not yet
-implemented.
+Charts, prediction models, and shared viewer access are not yet implemented.
+
+
+## Acknowledgments and resources
+
+- The LibreLinkUp connector was informed by Timo Schlüter's
+  [nightscout-librelink-up](https://github.com/timoschlueter/nightscout-librelink-up)
+  project, published under the [MIT License](https://github.com/timoschlueter/nightscout-librelink-up/blob/main/LICENSE.md).
+  Sugar Watch uses an unofficial LibreLinkUp interface and is not affiliated with Abbott.
+- Food and nutrient data are provided by
+  [USDA FoodData Central](https://fdc.nal.usda.gov/) under
+  [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
+  See the [API guide](https://fdc.nal.usda.gov/api-guide/) and
+  [API key signup](https://fdc.nal.usda.gov/api-key-signup/).
+- Built with [FastAPI](https://fastapi.tiangolo.com/),
+  [SQLAlchemy](https://www.sqlalchemy.org/),
+  [MySQL](https://www.mysql.com/), and
+  [Google OpenID Connect](https://developers.google.com/identity/openid-connect/openid-connect).
+
+See [third-party notices](THIRD_PARTY_NOTICES.md) for the Libre integration reference license.

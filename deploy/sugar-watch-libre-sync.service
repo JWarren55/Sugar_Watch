@@ -1,0 +1,25 @@
+[Unit]
+Description=Sugar Watch LibreLinkUp collection
+After=network-online.target mysql.service
+Wants=network-online.target
+ConditionPathExists=/etc/sugar-watch/libre-sync.env
+
+[Service]
+Type=oneshot
+User=sugarwatch
+Group=sugarwatch
+WorkingDirectory=/opt/sugar-watch/current
+EnvironmentFile=/etc/sugar-watch/app.env
+EnvironmentFile=/etc/sugar-watch/libre-sync.env
+Environment=PYTHONDONTWRITEBYTECODE=1
+StateDirectory=sugar-watch-libre-sync
+StateDirectoryMode=0700
+Environment=LIBRE_SYNC_STATE=/var/lib/sugar-watch-libre-sync/session.json
+ExecStart=/opt/sugar-watch/current/.venv/bin/python scripts/sync_libre.py
+TimeoutStartSec=120
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+RestrictSUIDSGID=true

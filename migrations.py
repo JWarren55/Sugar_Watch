@@ -212,6 +212,9 @@ def _apply_history_migration(engine):
 def apply_storage_migrations(engine):
     converted = _apply_height_migration(engine)
     _apply_history_migration(engine)
+    from integrity_migration import apply_integrity_migration
+
+    apply_integrity_migration(engine, schema_migrations)
     return converted
 
 

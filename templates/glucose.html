@@ -10,10 +10,36 @@
         <title>Glucose - Sugar Watch</title>
     </head>
     <body>
+        {% include "navigation.html" %}
         <h1>Glucose</h1>
         <p>
             <a href="/trash">Deleted Items</a>
         </p>
+        <h2>Import LibreView Readings</h2>
+        <p>Download an English CSV from LibreView, then upload it here. Readings are added to your account only. Repeated imports skip existing readings, including readings in Deleted Items. The uploaded file is not saved.</p>
+        {% if imported is not none %}<p>Imported {{ imported }} readings; skipped {{ skipped }} existing readings.</p>{% endif %}
+        <form method="post"
+              action="/glucose/import/libreview"
+              enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <label for="libre-file">LibreView CSV (under 4 MB; choose a shorter export if needed)</label>
+            <input type="file"
+                   id="libre-file"
+                   name="file"
+                   accept=".csv,text/csv"
+                   required>
+            <label for="import-zone">Timezone used by the exported readings</label>
+            <input id="import-zone"
+                   name="timezone_name"
+                   value="America/Chicago"
+                   required>
+            <label for="date-order">Export date order</label>
+            <select id="date-order" name="date_order">
+                <option value="MDY">Month / Day / Year</option>
+                <option value="DMY">Day / Month / Year</option>
+            </select>
+            <button type="submit">Import Readings</button>
+        </form>
         <h2>Add Reading</h2>
         <form method="post" action="/glucose">
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">

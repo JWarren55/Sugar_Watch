@@ -14,6 +14,12 @@ select = ["E4", "E7", "E9", "F", "I"]
 "tests/check_deployment.py" = ["E402"]
 "tests/check_history_migration.py" = ["E402"]
 "tests/check_storage_migration.py" = ["E402"]
+"tests/check_libre_import.py" = ["E402"]
+"tests/check_libre_sync.py" = ["E402"]
+"tests/check_food_catalog.py" = ["E402"]
+"scripts/setup_usda.py" = ["E402"]
+"scripts/sync_libre.py" = ["E402"]
+"scripts/setup_libre.py" = ["E402"]
 
 [tool.djlint]
 profile = "jinja"

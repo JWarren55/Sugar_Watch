@@ -1,8 +1,9 @@
-"""Run isolated release checks without loading laptop or server credentials."""
+"""Run isolated release checks without loading private application credentials."""
+
 import os
-from pathlib import Path
 import subprocess
 import sys
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 checks = (
@@ -13,6 +14,10 @@ checks = (
     "check_history_features.py",
     "check_history_migration.py",
     "check_storage_migration.py",
+    "check_libre_import.py",
+    "check_libre_sync.py",
+    "check_libre_polling.py",
+    "check_food_catalog.py",
 )
 env = dict(os.environ)
 env.update(
@@ -28,5 +33,7 @@ env.update(
 )
 for check in checks:
     print(f"Checking {check}", flush=True)
-    subprocess.run([sys.executable, str(ROOT / "tests" / check)], cwd=ROOT, env=env, check=True)
+    subprocess.run(
+        [sys.executable, str(ROOT / "tests" / check)], cwd=ROOT, env=env, check=True
+    )
 print("PASS: all isolated release checks")

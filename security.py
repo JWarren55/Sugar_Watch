@@ -126,9 +126,18 @@ class RequestSafetyMiddleware:
             if message["type"] == "http.disconnect":
                 return
             chunk = message.get("body", b"")
-            if len(body) + len(chunk) > self.max_body_bytes:
+            limit = (
+                4 * 1024 * 1024
+                if scope["path"] == "/glucose/import/libreview"
+                else self.max_body_bytes
+            )
+            if len(body) + len(chunk) > limit:
                 response = JSONResponse(
-                    {"detail": ["This form is too large. Submit less than 1 MB."]},
+                    {
+                        "detail": [
+                            f"This form is too large. Submit less than {limit // (1024 * 1024)} MB."
+                        ]
+                    },
                     status_code=413,
                 )
                 return await response(scope, receive, safe_send)

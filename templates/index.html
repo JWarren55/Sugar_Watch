@@ -8,6 +8,7 @@
         <title>{{ title }}</title>
     </head>
     <body>
+        {% include "navigation.html" %}
         <h1>Sugar Watch</h1>
         {% set login_messages = {
             "cancelled": "Google sign-in was cancelled. You can try again.",

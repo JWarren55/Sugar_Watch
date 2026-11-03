@@ -10,6 +10,7 @@
         <title>Food - Sugar Watch</title>
     </head>
     <body>
+        {% include "navigation.html" %}
         <h1>Food</h1>
         <p>
             <a href="/trash">Deleted Items</a>
@@ -55,6 +56,7 @@
         <hr>
         <!-- Saved foods                               . -->
         <h2>Saved Foods</h2>
+        <p><a href="/food/catalog">Find food in USDA FoodData Central</a></p>
         <label for="food-search">Search Foods:</label>
         <input type="text" id="food-search" placeholder="Search name or brand...">
         <br>

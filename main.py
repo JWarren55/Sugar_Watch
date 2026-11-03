@@ -12,6 +12,7 @@ from routes import (
     entries,
     exercise,
     food,
+    food_catalog,
     glucose,
     health,
     home,
@@ -54,6 +55,7 @@ app.include_router(home.router)
 app.include_router(auth.router)
 app.include_router(glucose.router)
 app.include_router(food.router)
+app.include_router(food_catalog.router)
 app.include_router(exercise.router)
 
 app.include_router(medication.router)

@@ -1,0 +1,6 @@
+# Production configuration. Save as /etc/sugar-watch/server-deploy.conf, root:root, mode 0600.
+# This is shell configuration. Keep paths/values quoted.
+MYSQL_BACKUP_CONFIG='/etc/sugar-watch/mysql-backup.cnf'
+BACKUP_DIRECTORY='/var/backups/sugar-watch'
+GPG_RECIPIENT='REPLACE_WITH_VERIFIED_GPG_PUBLIC_KEY_FINGERPRINT'
+SMOKE_HOST='sugar-watch.example.com'
