@@ -38,3 +38,10 @@ Data source: U.S. Department of Agriculture, Agricultural Research Service,
 FoodData Central. Database values may differ from a product's current label.
 
 Other dependencies retain their respective licenses.
+
+## ZXing browser barcode scanner
+
+Barcode decoding uses locally hosted [@zxing/browser 0.1.5](https://github.com/zxing-js/browser),
+including its bundled ZXing library. Camera frames are decoded on the device.
+The upstream MIT license is included at `app/static/vendor/zxing-browser/LICENSE`.
+The package was verified against its pinned SHA-512 integrity digest before vendoring.

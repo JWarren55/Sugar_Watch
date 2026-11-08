@@ -12,9 +12,9 @@ from tests.support import TestClient, sign_in
 
 state = runpy.run_path("tests/check_sections.py")
 app, models, database = state["app"], state["models"], state["database"]
-from nutrition import canonical
-from routes import auth
-from time_utils import to_utc, utc_now
+from app.routes import auth
+from app.services.nutrition import canonical
+from app.utils.time_utils import to_utc, utc_now
 
 
 def post(client, path, data=None):
@@ -254,7 +254,13 @@ with TestClient(app) as client:
         auth.oauth.google,
         "authorize_access_token",
         new=AsyncMock(
-            return_value={"userinfo": {"email_verified": True, "sub": "test1", "email": "one@example.test"}}
+            return_value={
+                "userinfo": {
+                    "email_verified": True,
+                    "sub": "test1",
+                    "email": "one@example.test",
+                }
+            }
         ),
     ):
         with patch.object(
@@ -269,7 +275,13 @@ with TestClient(app) as client:
     with patch.object(
         auth.oauth.google,
         "authorize_access_token",
-        new=AsyncMock(return_value={"userinfo": {"email_verified": True, }}),
+        new=AsyncMock(
+            return_value={
+                "userinfo": {
+                    "email_verified": True,
+                }
+            }
+        ),
     ):
         assert (
             "profile"

@@ -9,8 +9,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import httpx
 
-from libre_polling import PollDeferred
-from libre_sync import SyncConfig, SyncError, save_readings
+from app.services.libre_polling import PollDeferred
+from app.services.libre_sync import SyncConfig, SyncError, save_readings
 
 
 def main():
@@ -48,7 +48,7 @@ def main():
                 )
             values.update(dotenv_values(args.env_file, interpolate=False))
         config = SyncConfig.from_mapping(values)
-        from libre_polling import cached_fetch, session_state
+        from app.services.libre_polling import cached_fetch, session_state
 
         with session_state(args.state_file) as state:
             with httpx.Client(
@@ -58,7 +58,7 @@ def main():
         if args.dry_run:
             print(f"Libre sync dry run: {len(rows)} validated readings; nothing saved.")
             return 0
-        from database import SessionLocal
+        from app.db.session import SessionLocal
 
         added, skipped = save_readings(SessionLocal, config.user_id, rows)
         print(f"Libre sync succeeded: {added} added; {skipped} already present.")

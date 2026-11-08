@@ -7,7 +7,7 @@ from pathlib import Path
 
 import httpx
 
-from libre_polling import (
+from app.services.libre_polling import (
     PollDeferred,
     RateLimited,
     cached_fetch,
@@ -15,7 +15,7 @@ from libre_polling import (
     retry_seconds,
     session_state,
 )
-from libre_sync import SyncConfig, SyncError
+from app.services.libre_sync import SyncConfig, SyncError
 
 config = SyncConfig(
     "fixture@example.test", "private-fixture", "us", "4.16.0", "patient-fixture", 1

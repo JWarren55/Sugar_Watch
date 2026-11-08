@@ -22,3 +22,6 @@ backups/
 *.sql.*
 
 dist/
+
+# Personal learning material and generated document previews
+docs/private/

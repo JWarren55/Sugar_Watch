@@ -9,7 +9,7 @@ sys.path.insert(0, str(ROOT))
 
 from dotenv import set_key
 
-from food_catalog import CatalogError, USDAClient
+from app.services.food_catalog import CatalogError, USDAClient
 
 
 def main():

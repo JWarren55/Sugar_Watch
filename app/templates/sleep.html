@@ -1,0 +1,49 @@
+{% from 'pagination.html' import pager %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="/static/apple-health.css">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Sleep - Sugar Watch</title>
+    </head>
+    <body>
+        {% include "navigation.html" %}
+        <h1>Sleep</h1>
+        <p><a href="/integrations/apple-health">Apple Health connection and import status</a></p>
+        <form method="get" action="/sleep">
+            <label for="sleep-range">Time range</label>
+            <select id="sleep-range" name="days">
+                <option value="7" {% if days == 7 %}selected{% endif %}>Past 7 days</option>
+                <option value="30" {% if days == 30 %}selected{% endif %}>Past 30 days</option>
+            </select>
+            <button type="submit">Show sleep</button>
+        </form>
+        <h2>Recorded sleep: {{ asleep_hours }} hours over the past {{ days }} days</h2>
+        <p>This is the total recorded time asleep in this range, not a nightly average. Overlapping asleep intervals count once; Awake and In Bed intervals do not add to sleep time. Missing uploads leave missing data.</p>
+        {% if entries %}
+            <div class="health-table-scroll">
+                <table border="1">
+                    <tr>
+                        <th>Start</th>
+                        <th>End</th>
+                        <th>Stage</th>
+                        <th>Minutes</th>
+                        <th>Source</th>
+                    </tr>
+                    {% for entry in entries %}
+                        <tr>
+                            <td>{{ entry.start_time | local_time }}</td>
+                            <td>{{ entry.end_time | local_time }}</td>
+                            <td>{{ entry.stage | replace('_', ' ') | capitalize }}</td>
+                            <td>{{ ((entry.end_time-entry.start_time).total_seconds()/60) | round(1) }}</td>
+                            <td>{{ entry.source_name or 'Not supplied' }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        {% else %}<p>No sleep records in this range. Connect your iPhone exporter to import Apple Watch sleep stages.</p>{% endif %}
+        {{ pager(pagination) }}
+        <script src="/static/time.js" defer></script>
+    </body>
+</html>

@@ -10,7 +10,7 @@ from html.parser import HTMLParser
 from sqlalchemy import create_engine, event
 from sqlalchemy.pool import StaticPool
 
-import database
+from app.db import session as database
 
 # Configure the isolated database before importing application modules.
 database.engine = create_engine(
@@ -25,7 +25,7 @@ def enable_foreign_keys(connection, record):
 
 
 database.SessionLocal.configure(bind=database.engine)
-import models
+from app.db import models
 from main import app
 from tests.support import TestClient, sign_in
 
@@ -59,7 +59,7 @@ with database.SessionLocal() as db:
     )
     db.commit()
 
-from routes import auth, exercise, food, glucose, health, home, medication, mood
+from app.routes import auth, exercise, food, glucose, health, home, medication, mood
 
 routes = Counter(
     (method, route.path)

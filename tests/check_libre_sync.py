@@ -10,8 +10,8 @@ from tests.support import TestClient, sign_in
 state = runpy.run_path("tests/check_sections.py")
 models, database, app = state["models"], state["database"], state["app"]
 
-from libre_import import parse_libreview
-from libre_sync import (
+from app.services.libre_import import parse_libreview
+from app.services.libre_sync import (
     SyncConfig,
     SyncError,
     fetch_readings,

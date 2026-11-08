@@ -14,8 +14,8 @@ app, models, database = state["app"], state["models"], state["database"]
 
 from itsdangerous import SignatureExpired
 
-from food_catalog import CatalogError, USDAClient, food_values
-from routes import food_catalog as routes
+from app.routes import food_catalog as routes
+from app.services.food_catalog import CatalogError, USDAClient, food_values
 
 
 def nutrient(id, amount, unit):

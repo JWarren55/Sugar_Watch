@@ -9,13 +9,13 @@ os.environ["DATABASE_URL"] = "sqlite://"
 
 from sqlalchemy import create_engine, event, select
 
-import models
-from migrations import (
+from app.db import models
+from app.db.migrations import (
     HEIGHT_INCHES_MIGRATION,
     apply_storage_migrations,
     schema_migrations,
 )
-from units import to_display, to_storage
+from app.utils.units import to_display, to_storage
 
 
 def fixture():

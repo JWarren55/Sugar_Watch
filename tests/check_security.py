@@ -8,8 +8,8 @@ from tests.support import TestClient, sign_in
 state = runpy.run_path("tests/check_sections.py")
 app, models, database = state["app"], state["models"], state["database"]
 
-from entry_rules import EDIT_FIELDS, read_form_values
-from settings import Settings
+from app.core.settings import Settings
+from app.forms.entry_rules import EDIT_FIELDS, read_form_values
 
 
 def get_token(client, path="/"):

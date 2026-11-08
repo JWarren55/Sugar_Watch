@@ -1,0 +1,7 @@
+.signup-page { max-width: 560px; margin: 2rem auto; padding: 0 1rem; font: 1rem/1.6 system-ui, sans-serif; }
+.signup-page h1 { line-height: 1.25; }
+.signup-page label { display: block; font-weight: 600; }
+.signup-page input[type=email] { width: 100%; box-sizing: border-box; padding: .7rem; font: inherit; margin: .4rem 0 1rem; }
+.signup-page button, .signup-button { display: inline-block; min-height: 44px; box-sizing: border-box; padding: .65rem 1rem; font: inherit; background: #e5edf6; color: #102e4b; border: 1px solid #8a99a8; border-radius: 5px; cursor: pointer; }
+.signup-page :focus-visible { outline: 3px solid #2069b1; outline-offset: 2px; }
+.signup-page [role=alert] { border-left: 4px solid #a43424; padding-left: .8rem; }

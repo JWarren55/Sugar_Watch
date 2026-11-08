@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Join Sugar Watch</title>
+        <link rel="stylesheet" href="/static/signup.css">
+    </head>
+    <body>
+        {% include "navigation.html" %}
+        <main class="signup-page">
+            {% if state == "verified" %}
+                <h1>Your email is approved</h1>
+                <p>You can now join Sugar Watch. Sign in with Google using the same email you just verified.</p>
+                <p><a class="signup-button" href="/login">Sign in with Google</a></p>
+                <p>Your account starts with its own private records. Verifying an email does not grant access to anyone else's data.</p>
+            {% elif state == "confirm" %}
+                <h1>Verify your email</h1>
+                <p>Tap the button below to approve this email for Sugar Watch. You will then sign in with Google using the same address.</p>
+                <form method="post" action="/verify-email">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <input type="hidden" name="token" value="{{ verification_token }}">
+                    <button type="submit">Verify my email</button>
+                </form>
+            {% elif state == "sent" %}
+                <h1>Check your email</h1>
+                <p>If a link can be sent, you will receive a message from Sugar Watch. Open its link, then tap <strong>Verify my email</strong>.</p>
+                <p>The link lasts 30 minutes. Check your spam folder too. If you requested several links, use the newest message. To limit unwanted mail, wait before requesting another.</p>
+                <p><a href="/join">Request another link</a> · <a href="/login">Already approved? Sign in</a></p>
+            {% elif state == "expired" %}
+                <h1>This link cannot be used</h1>
+                <p>It may have expired, already been used, or been replaced by a newer link. If you already verified your email, you can sign in.</p>
+                <p><a href="/join">Request a new link</a> · <a href="/login">Sign in with Google</a></p>
+            {% elif not signup_enabled or state == "unavailable" %}
+                <h1>Registration is not available yet</h1>
+                <p>Email delivery has not been enabled. Existing approved accounts can still sign in.</p>
+                <p><a href="/login">Sign in with Google</a></p>
+            {% else %}
+                <h1>Join Sugar Watch</h1>
+                <p>Enter the email you use to sign in with Google. We will send a link to verify that you own it. After you confirm, your email is automatically approved.</p>
+                <p>You do not need a Gmail address, but this address must be linked to a Google Account for sign-in.</p>
+                {% if state == "invalid" %}<p role="alert">Enter a complete email address, such as name@example.com.</p>{% endif %}
+                {% if state == "delivery_error" %}<p role="alert">We could not send the email right now. Please try again later.</p>{% endif %}
+                <form method="post" action="/join">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <label for="signup-email">Your email</label>
+                    <input type="email"
+                           id="signup-email"
+                           name="email"
+                           maxlength="254"
+                           autocomplete="email"
+                           required>
+                    <button type="submit">Email me a verification link</button>
+                </form>
+                <p><a href="/login">Already approved? Sign in with Google</a></p>
+            {% endif %}
+        </main>
+    </body>
+</html>

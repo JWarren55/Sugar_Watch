@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import httpx
 from sqlalchemy import text
 
-from libre_sync import SyncConfig, SyncError, _payload, fetch_readings
+from app.services.libre_sync import SyncConfig, SyncError, _payload, fetch_readings
 
 
 def choose(items, label):
@@ -116,8 +116,8 @@ def main():
         patient = choose(items, "connection")
 
         # Read only. Do not import main.py, create tables, or run migrations here.
-        from database import engine
-        from settings import settings
+        from app.core.settings import settings
+        from app.db.session import engine
 
         with engine.connect() as db:
             accounts = db.execute(

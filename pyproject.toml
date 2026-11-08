@@ -1,4 +1,5 @@
 [tool.ruff]
+exclude = ["docs/private", "dist", ".venv"]
 line-length = 88
 target-version = "py312"
 
@@ -12,12 +13,19 @@ select = ["E4", "E7", "E9", "F", "I"]
 "tests/check_history_features.py" = ["E402"]
 "tests/check_security.py" = ["E402"]
 "tests/check_deployment.py" = ["E402"]
+"tests/check_email_signup.py" = ["E402"]
 "tests/check_history_migration.py" = ["E402"]
 "tests/check_storage_migration.py" = ["E402"]
 "tests/check_libre_import.py" = ["E402"]
 "tests/check_libre_sync.py" = ["E402"]
 "tests/check_food_catalog.py" = ["E402"]
+"tests/check_food_search.py" = ["E402"]
+"tests/check_glucose_chart.py" = ["E402"]
+"tests/check_apple_health.py" = ["E402"]
+"tests/check_apple_native.py" = ["E402"]
+"tests/check_health_storage.py" = ["E402"]
 "scripts/setup_usda.py" = ["E402"]
+"scripts/setup_email.py" = ["E402"]
 "scripts/sync_libre.py" = ["E402"]
 "scripts/setup_libre.py" = ["E402"]
 
@@ -27,3 +35,6 @@ indent = 4
 max_line_length = 100
 format_js = true
 preserve_blank_lines = false
+
+[tool.ruff.lint.isort]
+known-first-party = ["app", "tests"]

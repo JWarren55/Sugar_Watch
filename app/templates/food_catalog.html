@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Find Food - Sugar Watch</title>
+        <link rel="stylesheet" href="/static/food_search.css">
+        <script src="/static/vendor/zxing-browser/zxing-browser.min.js" defer></script>
+        <script src="/static/food_search.js" defer></script>
+    </head>
+    <body>
+        {% include "navigation.html" %}
+        <main class="catalog">
+            <h1>Find Food</h1>
+            <p><a href="/food">Back to Food</a></p>
+            <p>Find a food by name and brand, or scan its package barcode. Review the nutrition before saving.</p>
+            <section class="search-card" aria-labelledby="name-heading">
+                <h2 id="name-heading">Search by name and brand</h2>
+                <form method="get" action="/food/catalog" class="search-fields">
+                    <div>
+                        <label for="catalog-query">Food name</label>
+                        <input id="catalog-query"
+                               name="q"
+                               value="{{ query }}"
+                               maxlength="120"
+                               placeholder="Cheese or chicken">
+                    </div>
+                    <div>
+                        <label for="catalog-brand">Brand or restaurant (optional)</label>
+                        <input id="catalog-brand"
+                               name="brand"
+                               value="{{ brand }}"
+                               maxlength="100"
+                               placeholder="Great Value or McDonald's">
+                    </div>
+                    <div>
+                        <label for="catalog-kind">Food type</label>
+                        <select id="catalog-kind" name="kind">
+                            <option value="all"
+                                    {% if kind == 'all' %}selected{% endif %}>All foods</option>
+                            <option value="branded"
+                                    {% if kind == 'branded' %}selected{% endif %}>Branded products</option>
+                            <option value="common"
+                                    {% if kind == 'common' %}selected{% endif %}>Common foods</option>
+                        </select>
+                    </div>
+                    <button type="submit">Search foods</button>
+                </form>
+                <p class="hint">Try Food: cheese, Brand: Great Value. You can also enter “McDonald's, chicken” in the food field. Keep All foods selected to include restaurant entries as well as packaged products.</p>
+            </section>
+            <section class="search-card" aria-labelledby="barcode-heading">
+                <h2 id="barcode-heading">Find by barcode</h2>
+                <form method="get" action="/food/catalog" id="barcode-form">
+                    <label for="catalog-barcode">UPC / EAN barcode</label>
+                    <div class="barcode-actions">
+                        <input id="catalog-barcode"
+                               name="barcode"
+                               value="{{ barcode }}"
+                               inputmode="numeric"
+                               maxlength="50"
+                               placeholder="Numbers beneath the barcode"
+                               required
+                               aria-describedby="barcode-help">
+                        <button type="submit">Look up barcode</button>
+                        <button type="button" id="scan-start" hidden>Scan with camera</button>
+                    </div>
+                </form>
+                <p id="barcode-help" class="hint">Scan the product's striped UPC or EAN barcode. You can also type its numbers. Not every product is in USDA's database.</p>
+                <div id="scanner" hidden>
+                    <video id="scan-video" muted playsinline aria-label="Barcode camera preview">
+                    </video>
+                    <button type="button" id="scan-stop">Stop camera</button>
+                </div>
+                <p id="scan-status" role="status" aria-live="polite"></p>
+                <noscript>
+                    <p>Enter the barcode numbers above. Camera scanning requires JavaScript.</p>
+                </noscript>
+            </section>
+            {% if error %}<p role="alert">{{ error }}</p>{% endif %}
+            {% if searched and not foods and not error %}
+                <p>No matching foods on this page. {% if barcode %}Check the barcode or try a name and brand search.{% else %}Try fewer words, check the spelling, or search without the brand.{% endif %}</p>
+            {% endif %}
+            {% if foods %}
+                <h2>Search results</h2>
+                <div class="results-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Food</th>
+                                <th>Brand</th>
+                                <th>Type</th>
+                                <th>Barcode</th>
+                                <th>Nutrition</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for food in foods %}
+                                <tr>
+                                    <td data-label="Food">{{ food.name }}</td>
+                                    <td data-label="Brand">{{ food.brand or '—' }}</td>
+                                    <td data-label="Type">{{ food.kind }}</td>
+                                    <td data-label="Barcode">{{ food.barcode or '—' }}</td>
+                                    <td><a href="/food/catalog/{{ food.id }}">Review food</a></td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+            {% if page > 1 or next_page %}
+                <nav aria-label="Search result pages" class="result-pages">
+                    {% if page > 1 %}<a href="/food/catalog?q={{ query | urlencode }}&amp;brand={{ brand | urlencode }}&amp;barcode={{ barcode | urlencode }}&amp;kind={{ kind }}&amp;page={{ page - 1 }}">Previous</a>{% endif %}
+                    <span>Page {{ page }}</span>
+                    {% if next_page %}<a href="/food/catalog?q={{ query | urlencode }}&amp;brand={{ brand | urlencode }}&amp;barcode={{ barcode | urlencode }}&amp;kind={{ kind }}&amp;page={{ page + 1 }}">Next</a>{% endif %}
+                </nav>
+            {% endif %}
+            <p>Can't find it? <a href="/food">Add a custom food</a> using its package label.</p>
+            <p>Source: <a href="https://fdc.nal.usda.gov/"
+    target="_blank"
+    rel="noopener noreferrer">USDA FoodData Central</a>.</p>
+        </main>
+    </body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="/static/apple-health.css">
+        <title>Shortcuts setup - Sugar Watch</title>
+    </head>
+    <body>
+        {% include "navigation.html" %}
+        <main class="apple-health-page">
+            <h1>Build your free health shortcut</h1>
+            <p><a href="/integrations/apple-health">Back to Apple Health</a></p>
+            <p>This is a one-time manual build in Apple's Shortcuts app. It is more involved than installing a signed shortcut. Start with Sleep, test it, then duplicate the collector for the other categories. An Apple Health export is the simpler way to import your full history and workouts now.</p>
+            <h2>Before you start</h2>
+            <p>Use your iPhone on Wi-Fi. Keep it unlocked. Have your connection key from the Apple Health page ready. Do not paste it into a shared shortcut or share it with others.</p>
+            <p>The server addresses below are generated for this Sugar Watch installation. Add a header named <code>Authorization</code> to each Get Contents of URL action. Its value is your complete <code>Bearer …</code> key. Set the request method to POST and Request Body to JSON.</p>
+            <dl class="setup-settings">
+                <dt>Request a range</dt>
+                <dd>
+                    <code>{{ base }}plan</code>
+                </dd>
+                <dt>Send a batch</dt>
+                <dd>
+                    <code>{{ base }}batch</code>
+                </dd>
+                <dt>Confirm a finished range</dt>
+                <dd>
+                    <code>{{ base }}complete</code>
+                </dd>
+            </dl>
+            <h2>Build “Sugar Watch Sleep”</h2>
+            <p>Open <strong>Shortcuts → +</strong>, and name the shortcut <strong>Sugar Watch Sleep</strong>. Add these actions in order. Bold names are actions to search for. Names in code are variables or dictionary keys you create.</p>
+            <ol class="setup-steps">
+                <li>
+                    <h3>Stop unless Wi-Fi is connected</h3>
+                    <p>Add <strong>Get Network Details</strong>, choose <strong>Wi-Fi → Network Name</strong>. Add <strong>If</strong> the name <strong>does not have any value</strong>, then <strong>Stop This Shortcut</strong>. End If. Put this before every network or Health action. If Wi-Fi access is denied, stop rather than assuming you are connected.</p>
+                </li>
+                <li>
+                    <h3>Ask Sugar Watch which dates it needs</h3>
+                    <p>Add <strong>Get Contents of URL</strong> using the Request a range address above. Add the Authorization header. In its JSON body add <code>metric</code> as Text = <code>sleep</code>, and <code>on_wifi</code> as Boolean = true.</p>
+                    <p>Add <strong>Set Variable</strong> named <code>SyncPlan</code> to keep the response. Use <strong>Get Dictionary Value</strong> for <code>status</code>. If it is <code>up_to_date</code>, stop this shortcut. Otherwise get <code>start</code>, <code>end</code>, and <code>plan</code> from SyncPlan, keeping each as a variable.</p>
+                </li>
+                <li>
+                    <h3>Read the individual sleep records</h3>
+                    <p>Add <strong>Find Health Samples</strong>. Type = <strong>Sleep</strong>; Start Date is on or after the returned start date and before the returned end date. Convert the returned ISO dates with <strong>Get Dates from Input</strong> if the date field needs a date variable. Sort by Start Date, oldest first. Turn <strong>Limit off</strong>.</p>
+                    <p>Allow Shortcuts to read Sleep when asked. Do not add a Statistics action or sum the results. Keep the list as <code>Samples</code>. Add <strong>Count</strong> to get <code>TotalRecords</code>.</p>
+                </li>
+                <li>
+                    <h3>Split the list into groups of 200</h3>
+                    <p>Calculate <code>TotalRecords ÷ 200</code> and use <strong>Round Number → Always Round Up → Ones Place</strong> to get <code>TotalBatches</code>. If TotalRecords is zero, set TotalBatches to 0 and skip the batch loop.</p>
+                    <p>Repeat TotalBatches times. For each Repeat Index, calculate first position = <code>(Repeat Index - 1) × 200 + 1</code>. Last position = the smaller of <code>Repeat Index × 200</code> and TotalRecords. Use <strong>Get Item from List → Items in Range</strong> on Samples.</p>
+                </li>
+                <li>
+                    <h3>Make a dictionary for each sample in that group</h3>
+                    <p>Inside the batch loop, use <strong>Repeat with Each</strong> sample in the group. Use <strong>Get Details of Health Sample</strong> to read Start Date, End Date, Value, and Source. Use <strong>Format Date → ISO 8601</strong> on both dates so they include a time-zone offset.</p>
+                    <p>Add a <strong>Dictionary</strong> with Text keys <code>start</code>, <code>end</code>, <code>value</code>, and <code>source</code>, filling them with those values. Keep sleep Value as text (Core, Deep, REM, Awake, In Bed, or Asleep). The inner Repeat Results must be the list of dictionaries for this batch. Do not turn that list into joined text.</p>
+                </li>
+                <li>
+                    <h3>Upload this batch, then move to the next</h3>
+                    <p>After the inner repeat, add <strong>Get Contents of URL</strong> using Send a batch. Add the same Authorization header and a JSON body: <code>plan</code> = the plan text from SyncPlan; <code>index</code> as Number = Repeat Index minus 1; <code>records</code> as Array = the inner Repeat Results. Use the variable containing the list rather than typing JSON text.</p>
+                    <p>Check the response's <code>status</code>. It must equal <code>ok</code>. Stop on any error. Do not add a retry loop or continue to confirmation after a failed batch.</p>
+                </li>
+                <li>
+                    <h3>Confirm only after every batch succeeds</h3>
+                    <p>Outside both repeats, add <strong>Get Contents of URL</strong> using Confirm a finished range. Add the same header. JSON body: <code>plan</code> = plan text; <code>batches</code> as Number = TotalBatches; <code>records</code> as Number = TotalRecords. This also runs for an empty list with both counts set to 0.</p>
+                    <p>The response must say <code>ok</code>. Sugar Watch only advances this category's progress when every declared batch is present. If a run fails, stop and run the shortcut later; already-saved samples will not be duplicated.</p>
+                </li>
+            </ol>
+            <h2>Add the other categories</h2>
+            <p>Duplicate the tested Sleep shortcut for each row below. Change the plan's metric, the Health Type, and the sample dictionary's value/unit fields. For numbers, use Value as a Number, and add <code>unit</code> as Text using the actual unit returned by <strong>Get Details of Health Sample → Unit</strong>. Do not relabel kg as lb or seconds as milliseconds.</p>
+            <div class="health-table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Shortcut</th>
+                            <th>Plan metric</th>
+                            <th>Health Type</th>
+                            <th>Accepted units</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for key, stream in streams.items() %}{% if key != "sleep" %}<tr><td>Sugar Watch {{ stream.label }}</td><td><code>{{ key }}</code></td><td>{{ stream.label }}</td><td>{{ units[key] }}</td></tr>{% endif %}{% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <p>Health labels can vary by iOS language and version. Find the matching category rather than choosing a similarly named measurement. Workouts cannot be fully collected with this recipe; update them using Apple's export.zip.</p>
+            <h2>Make one daily button</h2>
+            <p>Create a shortcut named <strong>Sugar Watch Sync</strong>. Start with the same Wi-Fi check. Add <strong>Run Shortcut</strong> once for each collector you built. Run this manually while unlocked to approve permissions and check the received data.</p>
+            <p>For a charging trigger, use <strong>Shortcuts → Automation → + → Charger → Is Connected</strong>. Choose <strong>Run Immediately</strong> if offered, then run Sugar Watch Sync. Already-synced categories stop before querying Health. Do not schedule it every few minutes. If the phone was locked, unlock it and tap Sugar Watch Sync later.</p>
+            <h2>What happens if a run is missed?</h2>
+            <p>Apple Health keeps your records. Server progress does not advance on incomplete delivery. Each range covers at most two days with overlap. A long gap can take several runs to catch up; use the native file import to bring in a large history without running many shortcut queries.</p>
+            <p>Automatic runs are not guaranteed. A Wi-Fi name check cannot prevent a route change after Wi-Fi drops. For a strict no-cellular run, enable Airplane Mode, then turn Wi-Fi back on before running. Raw Health sample lists do not need to be saved to Files. Keep your shortcut private: its saved connection key can sync within your Apple Account if Shortcuts iCloud sync is enabled. Never publish a shortcut containing your key.</p>
+            <p>Apple references: <a href="https://support.apple.com/en-ph/guide/shortcuts/apde31e9638b/ios"
+    target="_blank"
+    rel="noopener noreferrer">Charger and Wi-Fi triggers</a>; <a href="https://support.apple.com/en-au/guide/shortcuts-mac/apd455c82f02/mac"
+    target="_blank"
+    rel="noopener noreferrer">Signing downloadable shortcuts</a>.</p>
+        </main>
+    </body>
+</html>

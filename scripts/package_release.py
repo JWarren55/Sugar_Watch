@@ -10,9 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DIRECTORIES = {
-    "routes",
-    "templates",
-    "static",
+    "app",
     "scripts",
     "tests",
     "deploy",
@@ -21,6 +19,7 @@ DIRECTORIES = {
 }
 FILES = {
     "README.md",
+    "CONTRIBUTING.md",
     "THIRD_PARTY_NOTICES.md",
     "pyproject.toml",
     "requirements.txt",
@@ -31,6 +30,8 @@ FILES = {
 
 def selected(path):
     parts = path.parts
+    if parts[:2] == ("docs", "private"):
+        return False
     if any(p in {"__pycache__", ".git", ".venv", "backups", "dist"} for p in parts):
         return False
     if path.name.startswith(".env") and path.name != ".env.example":

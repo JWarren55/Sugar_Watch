@@ -6,8 +6,8 @@ from datetime import datetime
 os.environ["DATABASE_URL"] = "sqlite://"
 from sqlalchemy import create_engine, event, select, text
 
-import models
-from migrations import (
+from app.db import models
+from app.db.migrations import (
     HEIGHT_INCHES_MIGRATION,
     HISTORY_MIGRATION,
     apply_storage_migrations,

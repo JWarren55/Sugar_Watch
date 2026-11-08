@@ -10,8 +10,10 @@ and users authenticate with Google OpenID Connect.
 - Health profiles with Imperial and Metric display preferences.
 - Food definitions, favorites, meal logging, and recorded nutrition totals.
 - Timestamped glucose, exercise, medication, mood, and measurement histories.
+- Glucose charts for the past 6, 12, or 24 hours, displayed in local time.
 - LibreView CSV imports and automatic LibreLinkUp glucose collection every five minutes.
 - USDA FoodData Central search with nutrition review and saved food imports.
+- Apple Health sleep, activity, vital, and workout uploads through an iPhone exporter.
 - Paginated records with editing, soft deletion, restoration, and confirmed permanent deletion.
 - Account ownership checks, CSRF protection, and production session security.
 
@@ -76,9 +78,19 @@ See [deployment configuration](docs/DEPLOYMENT.md) for production settings,
 service configuration, backups, and upgrades. Credentials and database exports
 must remain outside version control.
 
+## Project structure
+
+Application code lives in `app/`, with routes, services, database code, shared
+validation, templates, and browser assets in separate folders. Operational
+commands remain in `scripts/`; tests and deployment templates have their own
+folders. See [architecture](docs/ARCHITECTURE.md) and
+[contributing](CONTRIBUTING.md) for the development workflow.
+
+Run `python scripts/dev.py --help` to see the common development commands.
+
 ## Planned functionality
 
-Charts, prediction models, and shared viewer access are not yet implemented.
+Prediction models and shared viewer access are not yet implemented.
 
 
 ## Acknowledgments and resources
@@ -98,3 +110,14 @@ Charts, prediction models, and shared viewer access are not yet implemented.
   [Google OpenID Connect](https://developers.google.com/identity/openid-connect/openid-connect).
 
 See [third-party notices](THIRD_PARTY_NOTICES.md) for the Libre integration reference license.
+
+Apple Health uploads use [Health Auto Export](https://www.healthyapps.dev/) JSON
+exports and a revocable account-scoped token. Its automatic REST API destination
+requires Premium features and is subject to iOS background and unlocked-device
+limits. See [exporter setup](https://help.healthyapps.dev/en/health-auto-export/automations/rest-api/)
+and [deployment configuration](docs/DEPLOYMENT.md).
+
+Apple Health uses free native Apple Health exports for history and workouts,
+with a guided Apple Shortcuts setup for routine sample uploads. No paid export
+app is required. iPhone permissions and setup are required; a signed one-tap
+shortcut is not distributed. See the Apple Health page and deployment guide.

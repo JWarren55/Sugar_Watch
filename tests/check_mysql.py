@@ -1,15 +1,15 @@
 """Verify real MySQL schema and INSERTs inside a rolled-back transaction."""
 
-from datetime import date
+from datetime import date, timedelta
 from uuid import uuid4
 
 from sqlalchemy import func, inspect, select
 from sqlalchemy.orm import Session
 
-import models
-from database import engine
-from nutrition import from_food
-from time_utils import utc_now
+from app.db import models
+from app.db.session import engine
+from app.services.nutrition import from_food
+from app.utils.time_utils import utc_now
 
 
 def check():
@@ -97,6 +97,35 @@ def check():
                             timestamp=stamp,
                             glucose=110,
                             source="manual",
+                        ),
+                        models.SleepInterval(
+                            user_id=user_id,
+                            start_time=stamp,
+                            end_time=stamp + timedelta(hours=1),
+                            stage="core",
+                            import_key=key,
+                        ),
+                        models.HealthMetricSample(
+                            user_id=user_id,
+                            start_time=stamp,
+                            end_time=stamp,
+                            metric="steps",
+                            value=100,
+                            unit="count",
+                            import_key=key,
+                        ),
+                        models.HealthWorkout(
+                            user_id=user_id,
+                            start_time=stamp,
+                            end_time=stamp + timedelta(minutes=30),
+                            activity_type="Walking",
+                            import_key=key,
+                        ),
+                        models.HealthImportToken(
+                            user_id=user_id,
+                            token_hash=__import__("hashlib")
+                            .sha256(key.encode())
+                            .hexdigest(),
                         ),
                     ]
                 )

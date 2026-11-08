@@ -1,0 +1,1 @@
+"""Sugar Watch application components."""

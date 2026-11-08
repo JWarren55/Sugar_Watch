@@ -11,9 +11,9 @@ app, models, database = state["app"], state["models"], state["database"]
 from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.exc import IntegrityError
 
-from integrity_migration import apply_integrity_migration
-from libre_import import parse_libreview
-from migrations import schema_migrations
+from app.db.migrations import schema_migrations
+from app.db.migrations.integrity import apply_integrity_migration
+from app.services.libre_import import parse_libreview
 
 HEADER = "Device,Serial Number,Device Timestamp,Record Type,Historic Glucose mg/dL,Scan Glucose mg/dL\n"
 CSV = (

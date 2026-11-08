@@ -1,0 +1,166 @@
+{% from 'pagination.html' import pager %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="csrf-token" content="{{ csrf_token }}">
+        <meta name="current-user-id" content="{{ form_user_id or '' }}">
+        <link rel="stylesheet" href="/static/apple-health.css">
+        <title>Apple Health - Sugar Watch</title>
+    </head>
+    <body>
+        {% include "navigation.html" %}
+        <main class="apple-health-page">
+            <h1>Apple Health</h1>
+            <p>Use Apple's free tools. No paid export app is needed.</p>
+            <p><a href="/sleep">View your sleep</a> · <a href="/integrations/apple-health">Check upload status</a></p>
+            <section class="connection-status" aria-labelledby="connection-heading">
+                <h2 id="connection-heading">Your data</h2>
+                {% if native_import %}
+                    <p>Last Apple Health file imported: {{ native_import.created_at | local_time }}</p>
+                    <p>{{ native_import.counts.sleep }} sleep records, {{ native_import.counts.metric }} activity and heart measurements, and {{ native_import.counts.workout }} workouts added.</p>
+                {% else %}<p>No Apple Health file imported yet. Start with the steps below.</p>{% endif %}
+                {% if token and token.last_success_at %}
+                    <p>Last successful upload: {{ token.last_success_at | local_time }}</p>
+                {% elif token %}<p>Your Shortcuts key is ready. No shortcut upload has arrived yet.</p>{% endif %}
+            </section>
+            <h2>1. Bring in your existing history</h2>
+            <p>This includes the sleep, steps, active calories, weight, heart rate, resting heart rate, heart-rate variability, and workouts recorded in your Apple Health export.</p>
+            <ol class="setup-steps">
+                <li>
+                    <h3>Connect your iPhone to Wi-Fi</h3>
+                    <p>This file can be large. Keep your phone on Wi-Fi for the export and upload. Plug it in if your battery is low.</p>
+                </li>
+                <li>
+                    <h3>Save the Apple Health export</h3>
+                    <p>Open <strong>Health → your profile picture → Export All Health Data → Export</strong>. Choose <strong>Save to Files → On My iPhone</strong>, rather than iCloud Drive. Keep the original <strong>export.zip</strong> file; you do not need to unzip it. After the import succeeds, you can remove this ZIP from Files to free phone space; keep your records in Apple Health.</p>
+                </li>
+                <li>
+                    <h3>Choose that file here</h3>
+                    <form id="native-health-form"
+                          action="/integrations/apple-health/native-import"
+                          data-native-submit="true">
+                        <label for="native-health-file">Apple Health export.zip</label>
+                        <input id="native-health-file"
+                               type="file"
+                               accept=".zip,application/zip"
+                               required>
+                        <p>
+                            <label>
+                                <input id="native-health-wifi" type="checkbox" required>
+                                I am connected to Wi-Fi.
+                            </label>
+                        </p>
+                        <button type="submit"
+                                id="native-health-submit">Import my health history</button>
+                    </form>
+                    <p id="native-health-status" role="status" aria-live="polite"></p>
+                    <p>Keep this page open until it says the import finished. The upload limit is 100 MB. Sugar Watch saves the supported records and removes its temporary ZIP copy.</p>
+                </li>
+            </ol>
+            <details class="setup-extra">
+                <summary>What gets saved?</summary>
+                <p>Individual samples are kept, including their time and recording source. Sleep stages are kept separately. Workouts keep the details available in the export, such as duration, energy, and distance. Re-importing the file does not create repeat copies of the same native-export records.</p>
+                <p>Other Apple Health categories, medical documents, GPS routes, and photos are not imported. Glucose still comes from Libre. Deleting something in Apple Health does not automatically delete it here.</p>
+            </details>
+            <h2>2. Set up small daily uploads</h2>
+            <p>Apple Shortcuts can send sleep, steps, active calories, weight, and heart measurements. Workouts need a new Apple Health export when you want to update them.</p>
+            <p><strong>One-time iPhone setup is required.</strong> We do not have a signed shortcut to install with one tap. The guide walks you through building it in Apple's Shortcuts app.</p>
+            {% if new_token %}
+                <section class="connection-status">
+                    <h3>Copy your connection key</h3>
+                    <p>This includes <code>Bearer</code>. Copy the whole value into the shortcut's Authorization header. It is shown only now; keep it private.</p>
+                    <label for="health-authorization">Your connection key</label>
+                    <input id="health-authorization"
+                           type="password"
+                           readonly
+                           value="Bearer {{ new_token }}"
+                           autocomplete="off">
+                    <button type="button"
+                            data-copy-health="health-authorization">Copy connection key</button>
+                    <button type="button" id="health-show-token">Show connection key</button>
+                    <p id="health-copy-status" role="status" aria-live="polite"></p>
+                </section>
+            {% elif not token %}
+                <form method="post"
+                      action="/integrations/apple-health/token"
+                      data-native-submit="true">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <button type="submit">Create Shortcuts connection key</button>
+                </form>
+            {% else %}<p>A connection key already exists. Use the one you saved, or replace a lost key under Connection settings below.</p>{% endif %}
+            <p><a class="setup-link"
+   href="/integrations/apple-health/shortcuts/setup">Open the iPhone Shortcuts setup guide</a></p>
+            <p>Run it once a day while on Wi-Fi. It checks for recent syncs before reading Health, sends at most 200 samples per request, and saves progress only after every batch arrives. Missed uploads stay in Apple Health and can be sent later.</p>
+            <p>The shortcut must check Wi-Fi before any network request. That check reduces cellular use; a Wi-Fi drop can still change the phone's route. For strict zero-cellular use, run with Airplane Mode on and Wi-Fi turned back on. The website cannot force iOS to use Wi-Fi.</p>
+            <details class="setup-extra">
+                <summary>See progress for each category</summary>
+                {% if shortcut_progress %}
+                    <ul>{% for progress in shortcut_progress %}<li>{{ shortcut_streams[progress.metric].label }}: samples starting before {{ progress.completed_until | local_time }} have completed their upload window.</li>{% endfor %}</ul>
+                {% else %}<p>No category has completed a Shortcuts upload yet.</p>{% endif %}
+                <p>No records in a window can also mean a Health permission is missing. Compare a first upload with what you see in Apple Health. The first shortcut run starts with the last two days; the file import above supplies older history. Routine sync includes a one-day overlap for late-arriving samples. Re-import a Health export for older corrections or longer history.</p>
+            </details>
+            <details class="setup-extra">
+                <summary>Automatic runs and battery use</summary>
+                <p>After a manual test works, in Shortcuts choose <strong>Automation → + → Charger → Is Connected</strong>, select <strong>Run Immediately</strong> if offered, and run your Sugar Watch shortcut. Its first actions must stop unless Wi-Fi is connected.</p>
+                <p>The shortcut skips categories synced in the last 20 hours. Apple can block Health access while the phone is locked; unlock your phone and tap the shortcut if a run is missed. There is no continuous polling or background retry loop.</p>
+            </details>
+            {% if token %}
+                <details class="setup-extra" id="connection-settings">
+                    <summary>Connection settings — replace a lost key or disconnect</summary>
+                    <p>A replacement immediately stops the old key. Paste the replacement into every Sugar Watch shortcut on your phone.</p>
+                    <form method="post"
+                          action="/integrations/apple-health/token"
+                          data-native-submit="true">
+                        <input type="hidden"
+                               name="csrf_token"
+                               value="{{ csrf_token }}"><button type="submit">Create a replacement key</button>
+                    </form>
+                    <p>Disconnect stops shortcut uploads. Your saved records and the signed-in file import remain available.</p>
+                    <form method="post" action="/integrations/apple-health/revoke">
+                        <input type="hidden"
+                               name="csrf_token"
+                               value="{{ csrf_token }}"><button type="submit">Disconnect Apple Health uploads</button>
+                    </form>
+                </details>
+            {% endif %}
+            <h2>Recent activity and vital samples</h2>
+            {% if samples %}
+                <div class="health-table-scroll">
+                    <table border="1">
+                        <tr>
+                            <th>Time</th>
+                            <th>Metric</th>
+                            <th>Value</th>
+                            <th>Source</th>
+                        </tr>
+                        {% for sample in samples %}<tr><td>{{ sample.start_time | local_time }}</td><td>{{ sample.metric | replace('_', ' ') | capitalize }}</td><td>{{ sample.value | round(3) }} {{ sample.unit }}</td><td>{{ sample.source_name or 'Not supplied' }}</td></tr>{% endfor %}
+                    </table>
+                </div>
+            {% else %}<p>No activity or vital samples imported yet.</p>{% endif %}
+            {{ pager(pagination) }}
+            <h2>Imported workouts</h2>
+            {% if workouts %}
+                <div class="health-table-scroll">
+                    <table border="1">
+                        <tr>
+                            <th>Start</th>
+                            <th>End</th>
+                            <th>Activity</th>
+                            <th>Active minutes</th>
+                            <th>Energy</th>
+                            <th>Distance</th>
+                        </tr>
+                        {% for workout in workouts %}<tr><td>{{ workout.start_time | local_time }}</td><td>{{ workout.end_time | local_time }}</td><td>{{ workout.activity_type }}</td><td>{{ (workout.active_duration_seconds / 60) | round(1) if workout.active_duration_seconds is not none else 'Unknown' }}</td><td>{{ workout.energy_kcal | round(1) if workout.energy_kcal is not none else 'Unknown' }} kcal</td><td>{{ workout.distance_miles | round(2) if workout.distance_miles is not none else 'Unknown' }} mi</td></tr>{% endfor %}
+                    </table>
+                </div>
+            {% else %}<p>No workouts imported yet. Imported workouts are kept separate from manual exercise entries.</p>{% endif %}
+            {{ pager(workout_pagination, "Workouts") }}
+        </main>
+        <script src="/static/native-health.js" defer></script>
+        <script src="/static/apple-health.js" defer></script>
+        <script src="/static/time.js" defer></script>
+        <script src="/static/forms.js" defer></script>
+    </body>
+</html>

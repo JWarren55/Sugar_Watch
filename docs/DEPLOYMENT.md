@@ -236,3 +236,91 @@ The timer's previous active state is preserved; updates do not initially enable 
 A failure after switching leaves services stopped for inspection. The previous
 release path is saved in `PREVIOUS_RELEASE`. Verify external HTTPS, Google
 sign-in, account isolation, and the latest sync result after updating.
+
+
+## Apple Health imports and Shortcuts
+
+The Apple Health page uses Apple's free native ZIP export for existing history
+and workouts. It accepts only the original export.zip, streams at most 100 MB
+to a temporary file, and validates the full supported XML before committing.
+The expanded XML limit is 1 GB, with bounded records and entity declarations
+rejected. Temporary files are closed after success, error, or disconnect.
+Unrelated categories and GPS routes are not imported. Native exports preserve
+individual supported samples and source names; repeated native exports are
+deduplicated. The source export is not retained.
+
+Apple Shortcuts can send sleep, steps, active energy, body weight, heart rate,
+resting heart rate, and HRV. The app provides an authenticated, manual iPhone
+build guide; no signed one-tap shortcut is distributed. A Mac is needed for
+Apple's supported command-line signing process. Do not advertise an unsigned
+file as installable. Complete workout history still uses the native ZIP.
+
+The plan/batch/complete endpoints are exact POST paths under
+`/integrations/apple-health/shortcuts/`. They require the existing hashed,
+revocable, account-scoped bearer credential; browser cookies cannot authorize
+them. Other browser requests, including native-import, still require the
+signed-in account and CSRF. The legacy JSON import endpoint remains compatible
+with existing connections but is not needed by the new user workflow.
+
+Plans bind account, token, category, dates, and expected starting checkpoint,
+and expire after 24 hours. They cover at most two days, with a one-day overlap
+for late samples. Initial routine sync starts two days back; the ZIP supplies
+older history. Batches contain at most 200 individual samples. Delivery receipts
+make repeat requests safe. A checkpoint advances only after all numbered batches
+and the declared sample count match. Missing/failed batches leave it unchanged.
+Old delivery receipts expire after 30 days. Saved samples are not expired.
+Idle categories return up_to_date for 20 hours, avoiding repeated Health queries.
+No background phone polling or unlimited retry loop is required.
+
+The phone recipe checks Wi-Fi before network access, and uses a charger trigger
+after manual testing. A Wi-Fi name check is not a transport guarantee if Wi-Fi
+drops; the server cannot verify the route. Airplane Mode with Wi-Fi re-enabled
+is the documented strict no-cellular option. Locked-device Health access and
+background execution are controlled by iOS. Users must build/test the shortcut
+and grant Health permissions on the actual iPhone. No real-device execution is
+implied by the server and browser checks.
+
+The new repeat-safe migration adds health_shortcut_progress,
+health_shortcut_batches, and health_native_imports without changing existing
+samples. Per-account writes are serialized. Large native imports use one atomic
+database transaction and can take several minutes. Review logs locally without
+printing raw health records, request bodies, or authorization headers.
+
+## Public verified-email membership
+
+Email signup is disabled by default. Static ALLOWED_EMAILS bootstrap accounts
+remain valid. Database-approved verified addresses are also permitted, and all
+browser sessions, health uploads, and Libre account checks use the same policy.
+New approvals do not grant administrative access or access to other accounts.
+Closing new registration does not revoke previously approved memberships.
+
+Configure sending privately with `python scripts/setup_email.py` from the staged
+release. A dedicated Gmail account can use smtp.gmail.com:587 with STARTTLS and
+an App Password after 2-Step Verification. Other authenticated TLS SMTP services
+are supported. The wizard checks SMTP authentication without sending a message,
+then atomically writes owner-only .env settings. Do not paste SMTP credentials
+into chat, commit them, or use the normal Gmail password. PUBLIC_BASE_URL must
+be the exact HTTPS origin on an allowed host; links never use request Host data.
+
+The /join page sends a 30-minute, single-use verification link. Only its SHA-256
+hash is retained. Opening a link with GET does not approve the email: the user
+must submit a CSRF-protected confirmation. The verification page strips the path and query from
+referrers and removes its secret query from application access-log formatting.
+Tokens expire when used or superseded. Email is limited per address, per source
+IP hash, and globally (200 requests/day); SMTP failures still consume reservations.
+Delivery bodies and secrets must not be logged. Send-limit responses do not reveal
+whether an address already has an account. Mail is not a durable job queue: failed
+delivery is reported and the user can request another link after the cooldown.
+
+Google remains the authentication provider after verification. The address must
+be associated with a Google Account. Check the Google OAuth audience/publishing
+configuration: an app left in Testing can reject people who are not test users,
+even after Sugar Watch approves their email. Do not expand OAuth scopes simply
+to send verification mail. SMTP is configured separately.
+
+The repeat-safe migration adds email_approvals and email_verifications without
+changing existing users. Explicitly revoked database approvals cannot be restored
+by public email verification. Static bootstrap access is managed through the
+deployment allowlist, and user.active still applies to all access paths.
+Actual SMTP delivery, mailbox reception/spam placement, and public Google login
+must be tested after provider setup; mocked checks do not establish delivery.

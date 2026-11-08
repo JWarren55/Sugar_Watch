@@ -26,7 +26,7 @@ def sign_in(client, user_id=1):
 
     from itsdangerous import TimestampSigner
 
-    from settings import settings
+    from app.core.settings import settings
 
     client.cookies.clear()
     payload = base64.b64encode(json.dumps({"user_id": user_id}).encode())

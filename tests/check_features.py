@@ -13,7 +13,7 @@ from tests.support import TestClient, sign_in
 state = runpy.run_path("tests/check_sections.py")
 app, models, database = state["app"], state["models"], state["database"]
 
-from entry_rules import SECTIONS
+from app.forms.entry_rules import SECTIONS
 
 stamp = "2026-10-19T14:30"
 
@@ -236,14 +236,15 @@ with TestClient(app) as client:
     )
 
     # OAuth callback session handling can be checked without contacting Google.
-    from routes import auth
+    from app.routes import auth
 
     with patch.object(
         auth.oauth.google,
         "authorize_access_token",
         new=AsyncMock(
             return_value={
-                "userinfo": {"email_verified": True,
+                "userinfo": {
+                    "email_verified": True,
                     "sub": "test1",
                     "email": "one@example.test",
                     "name": "Test One",
