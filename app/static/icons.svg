@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+  <symbol id="home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10h-6v-6H9v6H3z"/></symbol>
+  <symbol id="insight" viewBox="0 0 24 24"><path d="M3 20h18M6 16v-4m6 4V5m6 11V9"/></symbol>
+  <symbol id="logs" viewBox="0 0 24 24"><path d="M6 3h14v18H6zM4 7h4m-4 5h4m-4 5h4m4-9h4m-4 4h4"/></symbol>
+  <symbol id="settings" viewBox="0 0 24 24"><path d="m9 3-.6 2.3-2 .9-2.2-.7-2 3.4 1.7 1.7v2.8l-1.7 1.7 2 3.4 2.2-.7 2 .9.6 2.3h4l.6-2.3 2-.9 2.2.7 2-3.4-1.7-1.7v-2.8l1.7-1.7-2-3.4-2.2.7-2-.9L13 3z"/><circle cx="11" cy="12" r="3"/></symbol>
+  <symbol id="food" viewBox="0 0 24 24"><path d="M12 7c2-2 6-1 7.5 2 2 4-1 11-4.5 11-1 0-2-.6-3-.6s-2 .6-3 .6c-3.5 0-6.5-7-4.5-11C6 6 10 5 12 7Zm0 0c0-3 1.5-4.5 4-5"/></symbol>
+  <symbol id="barcode" viewBox="0 0 24 24"><path d="M8 4H4v4m12-4h4v4M4 16v4h4m12-4v4h-4M7 9v6m3-6v6m4-6v6m3-6v6"/></symbol>
+  <symbol id="heart" viewBox="0 0 24 24"><path d="M20 5a5 5 0 0 0-8 .8A5 5 0 0 0 4 5c-3 3-2 6 0 8l8 8 8-8c2-2 3-5 0-8Z"/></symbol>
+  <symbol id="sleep" viewBox="0 0 24 24"><path d="M3 5v15m0-4h18m0 4v-8a2 2 0 0 0-2-2h-7v6m-9-4h9"/><circle cx="7" cy="9" r="2"/></symbol>
+  <symbol id="wake" viewBox="0 0 24 24"><path d="M3 18h18M7 15a5 5 0 1 1 10 0M12 3v3M4 7l2 2m14-2-2 2"/></symbol>
+  <symbol id="exercise" viewBox="0 0 24 24"><path d="M2 12h2m16 0h2M9 12h6M4 8h5v8H4zm11 0h5v8h-5z"/></symbol>
+  <symbol id="medication" viewBox="0 0 24 24"><path d="m5 12 7-7a5 5 0 0 1 7 7l-7 7a5 5 0 0 1-7-7Zm3.5-3.5 7 7"/></symbol>
+  <symbol id="mood" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 14a4 4 0 0 0 8 0M8 9h.01M16 9h.01"/></symbol>
+  <symbol id="measurement" viewBox="0 0 24 24"><path d="m3 16 13-13 5 5L8 21zm7-7 2 2m1-5 2 2m-8 4 2 2"/></symbol>
+  <symbol id="apple" viewBox="0 0 24 24"><path d="M2 12h5l3-7 4 14 3-7h5"/></symbol>
+</svg>

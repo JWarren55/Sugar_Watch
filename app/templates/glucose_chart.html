@@ -1,0 +1,33 @@
+<section id="glucose-chart"
+         class="glucose-chart"
+         {% if dashboard_chart %}data-timeline{% endif %}
+         aria-labelledby="chart-heading">
+    <div class="chart-heading-row">
+        <h2 id="chart-heading">Glucose over time</h2>
+        <div class="chart-ranges" role="group" aria-label="Chart time range">
+            <button type="button" data-chart-hours="6" aria-pressed="false">6 hours</button>
+            <button type="button" data-chart-hours="12" aria-pressed="true">12 hours</button>
+            <button type="button" data-chart-hours="24" aria-pressed="false">24 hours</button>
+        </div>
+    </div>
+    <p id="chart-status" role="status" aria-live="polite">Loading glucose readings…</p>
+    <div id="chart-canvas" class="chart-canvas" aria-busy="true"></div>
+    <div id="chart-inspection" hidden>
+        <label for="chart-reading">Inspect a reading</label>
+        <input type="range" id="chart-reading" min="0" max="0" value="0" step="1">
+        <output id="chart-reading-value" for="chart-reading"></output>
+    </div>
+    {% if dashboard_chart %}
+        <p class="chart-note"><span class="workout-key"></span> Green shading marks exercise intervals. Dotted lines mark timed events.</p>
+        <details class="event-list" id="chart-events" hidden>
+            <summary>Timeline events</summary>
+            <ul>
+            </ul>
+        </details>
+    {% endif %}
+    <p class="chart-note">Times use your local timezone. Gaps longer than 20 minutes are shown without a connecting line.</p>
+    <button type="button" id="chart-refresh">Refresh chart</button>
+    <noscript>
+        <p>Enable JavaScript to view the chart. <a href="/logs?log=glucose">Browse your glucose records</a>.</p>
+    </noscript>
+</section>

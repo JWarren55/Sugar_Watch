@@ -1,3 +1,16 @@
-<nav aria-label="Main navigation">
-    <p><a href="/">Home</a></p>
-</nav>
+<link rel="stylesheet" href="/static/sugar-watch.css">
+{% if form_user_id %}
+    {% set path = request.url.path %}
+    {% set tabs = [('/', 'home', 'Home'), ('/insight', 'insight', 'Insight'), ('/logs', 'logs', 'Logs'), ('/settings', 'settings', 'Settings')] %}
+    {% set active = {"/": "/", "/insight": "/insight", "/settings": "/settings", "/integrations/apple-health": "/settings"}.get(path, "/logs") %}
+    <nav class="bottom-nav" aria-label="Main navigation">
+        {% for href, icon, label in tabs %}
+            <a href="{{ href }}" {% if active == href %}aria-current="{% if path == href %}page{% else %}location{% endif %}"{% endif %}>
+                <svg aria-hidden="true">
+                    <use href="/static/icons.svg#{{ icon }}" />
+                </svg>
+                <span>{{ label }}</span>
+            </a>
+        {% endfor %}
+    </nav>
+{% endif %}

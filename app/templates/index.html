@@ -6,10 +6,10 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>{{ title }}</title>
+        {% if user %}<link rel="stylesheet" href="/static/glucose-chart.css">{% endif %}
     </head>
     <body>
         {% include "navigation.html" %}
-        <h1>Sugar Watch</h1>
         {% set login_messages = {
             "cancelled": "Google sign-in was cancelled. You can try again.",
             "configuration": "Google sign-in is not configured. Check the server's Google client settings.",
@@ -27,50 +27,12 @@
             {% if login_result == "unauthorized" and email_signup_enabled %}<p><a href="/join">Verify your email to get access</a></p>{% endif %}
         {% endif %}
         {% if user %}
-            <!-- Show the signed-in user's account and tracking links. -->
-            <h2>Welcome, {{ user.name }}</h2>
-            <p>{{ user.email }}</p>
-            {% if user.picture %}
-                <img src="{{ user.picture }}" alt="Profile picture" width="80">
-            {% endif %}
-            <br>
-            <p>
-                <a href="/glucose">Glucose Readings</a>
-            </p>
-            <p>
-                <a href="/food">Food Entries</a>
-            </p>
-            <p>
-                <a href="/exercise">Exercise Entries</a>
-            </p>
-            <p>
-                <a href="/medication">Medication Entries</a>
-            </p>
-            <p>
-                <a href="/mood">Mood Entries</a>
-            </p>
-            <p>
-                <a href="/health">Health Profile and Measurements</a>
-            </p>
-            <p><a href="/sleep">Sleep</a></p>
-            <p><a href="/integrations/apple-health">Apple Health</a></p>
-            <br>
-            <br>
-            <p>
-                <a href="/trash">Deleted Items</a>
-            </p>
-            <form method="post" action="/logout">
-                <input type="hidden"
-                       name="csrf_token"
-                       value="{{ csrf_token }}"><button type="submit">Log out</button>
-            </form>
+            {% include "overview.html" %}
         {% else %}
             {% if email_signup_enabled %}<p><a href="/join">New here? Verify your email to join</a></p>{% endif %}
-            <!-- Offer Google sign-in when no account is connected. -->
+            <h1>Sugar Watch</h1>
             <p>Track your glucose, food, and exercise.</p>
-            <a href="/login">
-                <button>Sign in with Google</button>
-            </a>
+            <a href="/login">Sign in with Google</a>
         {% endif %}
     </body>
 </html>

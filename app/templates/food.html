@@ -20,7 +20,8 @@
         </p>
         <hr>
         <!-- Food log list                             . -->
-        <h2>Foods to Log</h2>
+        <h2 id="foods-to-log">Foods to Log</h2>
+        <p><a href="/food/estimate">AI estimate from a food photo</a></p>
         <p>
             Add foods from your saved foods below. When you are finished,
             click <strong>Log All Foods</strong>.
@@ -55,7 +56,7 @@
         </form>
         <hr>
         <!-- Saved foods                               . -->
-        <h2>Saved Foods</h2>
+        <h2 id="saved-foods">Saved Foods</h2>
         <p><a href="/food/catalog">Find food in USDA FoodData Central</a></p>
         <label for="food-search">Search Foods:</label>
         <input type="text" id="food-search" placeholder="Search name or brand...">
@@ -319,7 +320,7 @@
         </form>
         <hr>
         <!-- Recent food entries                       . -->
-        <h2>Food History</h2>
+        <h2 id="history">Food History</h2>
         {% if entries %}
             <table border="1">
                 <tr>
@@ -339,6 +340,10 @@
                         <td>
                             {% if item.food %}
                                 {{ item.food.name }}
+                                {% if item.entry.nutrition_snapshot.source == 'ai_estimate' %}
+                                    <br>
+                                    <small>AI estimate</small>
+                                {% endif %}
                                 {% if item.food.brand %}
                                     <br>
                                     <small>{{ item.food.brand }}</small>

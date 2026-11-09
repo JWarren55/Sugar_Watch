@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Settings · Sugar Watch</title>
+    </head>
+    <body>
+        {% include "navigation.html" %}
+        <header class="app-heading">
+            <div>
+                <p class="eyebrow">Sugar Watch</p>
+                <h1>Settings</h1>
+            </div>
+        </header>
+        <main class="settings-grid">
+            <section class="dashboard-card" aria-labelledby="account-heading">
+                <h2 id="account-heading">Account &amp; profile</h2>
+                {% if user.name %}<p><strong>{{ user.name }}</strong></p>{% endif %}
+                <p class="muted">{{ user.email }}</p>
+                <p><a href="/health#profile">Health profile and display units</a></p>
+                <form method="post" action="/logout">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <button type="submit">Log out</button>
+                </form>
+            </section>
+            <section class="dashboard-card"
+                     id="nutrition-goals"
+                     aria-labelledby="goals-heading">
+                <h2 id="goals-heading">Daily nutrition goals</h2>
+                <p class="muted">Enter your daily targets to compare them with your logged food.</p>
+                {% if request.query_params.get("nutrition") == "saved" %}<p class="saved-message" role="status">Nutrition goals saved.</p>{% endif %}
+                <form method="post" action="/settings/nutrition" class="goals-form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    {% for key, label in [('calories', 'Calories (kcal)'), ('carbs', 'Carbs (g)'), ('protein', 'Protein (g)'), ('fat', 'Fat (g)')] %}
+                        <label>
+                            {{ label }}<input name="{{ key }}"
+       type="number"
+       inputmode="decimal"
+       min="0.01"
+       max="100000"
+       step="0.01"
+       value="{{ goals[key] if goals else '' }}"
+       required>
+                        </label>
+                    {% endfor %}
+                    <button type="submit">Save nutrition goals</button>
+                </form>
+            </section>
+            <section class="dashboard-card" aria-labelledby="integrations-heading">
+                <h2 id="integrations-heading">Data connections</h2>
+                <h3>Libre sensor</h3>
+                <p><a href="/glucose#libreview">Import a LibreView CSV</a> or <a href="/glucose#add-reading">record a glucose reading</a>.</p>
+                <p class="muted">For automatic LibreLinkUp collection, ask your server administrator to run <code>python scripts/setup_libre.py</code> on the server.</p>
+                <h3>Apple Health</h3>
+                <p><a href="/integrations/apple-health">Upload Apple Health data or set up daily iPhone Shortcut uploads</a>.</p>
+            </section>
+            <section class="dashboard-card" id="ai-food" aria-labelledby="ai-food-heading">
+                <h2 id="ai-food-heading">AI food estimates</h2>
+                <p>Use your own OpenAI API key to estimate nutrition from meal photos. API usage goes to your OpenAI project.</p>
+                <ol>
+                    <li>Sign in to the <a href="https://platform.openai.com/">OpenAI API Platform</a> and select or create a project.</li>
+                    <li>
+                        Set up <a href="https://platform.openai.com/settings/organization/billing/overview">API billing</a>
+                        or <a href="https://developers.openai.com/api/docs/guides/chatgpt-api-credits">claim API credits if eligible</a>.
+                        API usage is tracked separately from ChatGPT usage.
+                    </li>
+                    <li>
+                        Open <a href="https://platform.openai.com/api-keys">API keys</a>, create a new secret key
+                        for your project, and copy it. The key needs access to the Responses API and GPT-5.4 Mini.
+                    </li>
+                    <li>Paste the key below and save it. Then choose <strong>AI estimate</strong> from <strong>Add entry</strong> on Home.</li>
+                </ol>
+                {% if request.query_params.get("ai_food") == "saved" %}
+                    <p class="saved-message" role="status">OpenAI API key saved.</p>
+                {% elif request.query_params.get("ai_food") == "removed" %}
+                    <p class="saved-message" role="status">OpenAI API key removed from Sugar Watch.</p>
+                {% endif %}
+                {% if openai_key_saved %}<p>Your account has a saved API key.</p>{% endif %}
+                <form method="post" action="/settings/ai-food/key" class="goals-form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <label>
+                        OpenAI API key
+                        <input type="password" name="api_key" minlength="20" maxlength="512" autocomplete="off" required>
+                    </label>
+                    <button type="submit">{{ "Replace API key" if openai_key_saved else "Save API key" }}</button>
+                </form>
+                {% if openai_key_saved %}
+                    <form method="post" action="/settings/ai-food/remove">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <button type="submit">Remove API key</button>
+                    </form>
+                {% endif %}
+            </section>
+            <section class="dashboard-card" aria-labelledby="data-heading">
+                <h2 id="data-heading">Manage records</h2>
+                <p><a href="/logs">Browse your records</a></p>
+                <p><a href="/trash">Restore or permanently delete records</a></p>
+            </section>
+        </main>
+    </body>
+</html>

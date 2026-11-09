@@ -324,3 +324,12 @@ by public email verification. Static bootstrap access is managed through the
 deployment allowlist, and user.active still applies to all access paths.
 Actual SMTP delivery, mailbox reception/spam placement, and public Google login
 must be tested after provider setup; mocked checks do not establish delivery.
+
+### AI food estimates
+
+Each user can save their own OpenAI API key under Settings → AI food estimates.
+Keys are encrypted in the database with an account-specific key derived from the
+server's `SECRET_KEY`. Keep that secret with the deployment configuration and
+restore it alongside the database. After a secret rotation, users must replace
+their stored API keys. Photo estimation requires outbound HTTPS to
+`api.openai.com`; browser camera capture requires HTTPS or localhost.

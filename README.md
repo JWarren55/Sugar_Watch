@@ -9,6 +9,7 @@ and users authenticate with Google OpenID Connect.
 - Google sign-in with optional account restrictions and required production allowlists.
 - Health profiles with Imperial and Metric display preferences.
 - Food definitions, favorites, meal logging, and recorded nutrition totals.
+- Meal photo nutrition estimates with editable results and a personal OpenAI API key.
 - Timestamped glucose, exercise, medication, mood, and measurement histories.
 - Glucose charts for the past 6, 12, or 24 hours, displayed in local time.
 - LibreView CSV imports and automatic LibreLinkUp glucose collection every five minutes.

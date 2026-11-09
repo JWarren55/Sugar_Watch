@@ -12,12 +12,16 @@
         <h1>{{ food.name }}</h1>
         {% if food.brand %}<p>{{ food.brand }}</p>{% endif %}
         <p><a href="/food/catalog">Back to Food Search</a></p>
-        <p><strong>Nutrition basis: 100 g.</strong> This is a reference amount, not the amount you ate. After saving, enter the actual amount when logging a meal.</p>
+        {% if source == "restaurant" %}
+            <p><strong>Nutrition per menu serving ({{ food.serving_size | round(3) | int }} g).</strong> Enter the amount you ate when logging a meal.</p>
+        {% else %}
+            <p><strong>Nutrition basis: 100 g.</strong> This is a reference amount, not the amount you ate. After saving, enter the actual amount when logging a meal.</p>
+        {% endif %}
         <p>Missing values are unknown, not zero. Check the product label when available.</p>
         <table border="1">
             <tr>
                 <th>Nutrient</th>
-                <th>Per 100 g</th>
+                <th>{% if source == "restaurant" %}Per menu serving{% else %}Per 100 g{% endif %}</th>
             </tr>
             {% for field, unit in nutrient_units.items() %}
                 <tr><td>{{ field | replace('_', ' ') | capitalize }}</td><td>{% if food[field] is not none %}{{ food[field] | round(3) }} {{ unit }}{% else %}Unknown{% endif %}</td></tr>
@@ -29,9 +33,9 @@
             <button type="submit">Save to My Foods</button>
         </form>
         <p>Saving adds a food definition; it does not log a meal. You can edit the saved food later.</p>
-        <p>Source: <a href="https://fdc.nal.usda.gov/food-details/{{ fdc_id }}/nutrients"
+        <p>Source: <a href="{{ source_url }}"
     target="_blank"
-    rel="noopener noreferrer">USDA FoodData Central, food {{ fdc_id }}</a>.</p>
+    rel="noopener noreferrer">{{ source_label }}</a>.</p>
         <script src="/static/forms.js" defer></script>
     </body>
 </html>

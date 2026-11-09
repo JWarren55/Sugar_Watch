@@ -224,4 +224,6 @@ def apply_storage_migrations(engine):
     from app.db.migrations.email_signup import apply_signup_migration
 
     apply_signup_migration(engine, schema_migrations)
+    models.NutritionGoal.__table__.create(engine, checkfirst=True)
+    models.OpenAICredential.__table__.create(engine, checkfirst=True)
     return converted

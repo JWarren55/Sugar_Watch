@@ -125,7 +125,7 @@
                     </form>
                 </details>
             {% endif %}
-            <h2>Recent activity and vital samples</h2>
+            <h2 id="samples">Recent activity and vital samples</h2>
             {% if samples %}
                 <div class="health-table-scroll">
                     <table border="1">
@@ -140,7 +140,7 @@
                 </div>
             {% else %}<p>No activity or vital samples imported yet.</p>{% endif %}
             {{ pager(pagination) }}
-            <h2>Imported workouts</h2>
+            <h2 id="workouts">Imported workouts</h2>
             {% if workouts %}
                 <div class="health-table-scroll">
                     <table border="1">

@@ -5,17 +5,17 @@ input[readonly] { width: 100%; max-width: 42rem; box-sizing: border-box; padding
 .apple-health-page button { font: inherit; min-height: 44px; cursor: pointer; }
 .apple-health-page input { font: inherit; min-height: 44px; }
 .apple-health-page label { display: block; font-weight: 600; }
-.apple-health-page :focus-visible { outline: 3px solid #2069b1; outline-offset: 3px; }
-.connection-status { background: #eff6fc; border: 1px solid #b4cce1; border-radius: 8px; padding: 1rem; }
+.apple-health-page :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.connection-status { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 1rem; }
 .connection-status h2 { margin-top: 0; }
 .setup-steps { padding-left: 1.6rem; }
-.setup-steps > li { padding: .3rem .4rem 1rem; border-bottom: 1px solid #d5dee5; }
+.setup-steps > li { padding: .3rem .4rem 1rem; border-bottom: 1px solid var(--line); }
 .setup-steps > li::marker { font-weight: 700; font-size: 1.2rem; }
 .setup-steps h3 { font-size: 1.15rem; margin-bottom: .5rem; }
-.setup-settings, .header-values { display: grid; grid-template-columns: minmax(130px, 1fr) 1.3fr; margin: .8rem 0; border: 1px solid #d5dee5; border-radius: 6px; overflow: hidden; }
-.setup-settings dt, .setup-settings dd, .header-values dt, .header-values dd { margin: 0; padding: .6rem; overflow-wrap: anywhere; border-bottom: 1px solid #e1e7ed; }
-.setup-settings dt, .header-values dt { font-weight: 600; background: #f3f6f9; }
-.setup-extra { margin: 1rem 0; padding: .8rem; border: 1px solid #d5dee5; border-radius: 6px; }
+.setup-settings, .header-values { display: grid; grid-template-columns: minmax(130px, 1fr) 1.3fr; margin: .8rem 0; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.setup-settings dt, .setup-settings dd, .header-values dt, .header-values dd { margin: 0; padding: .6rem; overflow-wrap: anywhere; border-bottom: 1px solid var(--line); }
+.setup-settings dt, .header-values dt { font-weight: 600; background: var(--raised); }
+.setup-extra { margin: 1rem 0; padding: .8rem; border: 1px solid var(--line); border-radius: 6px; }
 .apple-health-page summary { cursor: pointer; font-weight: 600; }
 .health-table-scroll { max-width: 100%; overflow-x: auto; margin: 1rem 0; }
 .health-table-scroll table { border-collapse: collapse; }
@@ -27,7 +27,7 @@ input[readonly] { width: 100%; max-width: 42rem; box-sizing: border-box; padding
     .setup-settings dd, .header-values dd { padding-top: .1rem; }
 }
 
-.setup-link { display: inline-block; padding: .7rem; background: #e5edf6; border: 1px solid #b4cce1; border-radius: 5px; }
+.setup-link { display: inline-block; padding: .7rem; background: var(--raised); border: 1px solid var(--line); border-radius: 5px; }
 .apple-health-page code { overflow-wrap: anywhere; }
 .apple-health-page input[type=file] { max-width: 100%; }
 .apple-health-page input[type=checkbox] { min-height: 0; }

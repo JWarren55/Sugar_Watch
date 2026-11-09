@@ -6,6 +6,7 @@ from fastapi.responses import RedirectResponse
 from app.db import models
 from app.db.session import SessionLocal
 from app.routes.common import templates
+from app.services.dashboard import timeline
 from app.utils.pagination import paginate
 from app.utils.time_utils import to_utc
 
@@ -114,7 +115,7 @@ def chart_now():
 
 
 @router.get("/glucose/chart")
-def glucose_chart(request: Request, hours: int = Query(12)):
+def glucose_chart(request: Request, hours: int = Query(12), events: bool = False):
     if hours not in (6, 12, 24):
         raise HTTPException(422, "Choose 6, 12, or 24 hours.")
     end = chart_now()
@@ -132,6 +133,8 @@ def glucose_chart(request: Request, hours: int = Query(12)):
             .all()
         )
 
+        event_data = timeline(db, request.state.user.id, start, end) if events else None
+
     def utc(value):
         return value.replace(tzinfo=timezone.utc).isoformat()
 
@@ -140,6 +143,7 @@ def glucose_chart(request: Request, hours: int = Query(12)):
         "start": utc(start),
         "end": utc(end),
         "unit": "mg/dL",
+        **({"timeline": event_data} if event_data is not None else {}),
         "readings": [
             {"time": utc(row.timestamp), "glucose": row.glucose} for row in readings
         ],

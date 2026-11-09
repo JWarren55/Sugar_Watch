@@ -1,0 +1,127 @@
+<header class="app-heading">
+    <div><p class="eyebrow">Welcome{% if user.name %}, {{ user.name }}{% endif %}</p><h1>Sugar Watch</h1></div>
+    <a class="profile-badge" href="/settings" aria-label="Account settings">
+        {% if user.picture %}<img src="{{ user.picture }}" alt="">{% else %}{{ (user.name or user.email or 'S')[0] | upper }}{% endif %}
+    </a>
+</header>
+<main>
+    <div class="dashboard-toolbar" aria-label="Dashboard slides">
+        <div class="slide-tabs" role="group" aria-label="Select a dashboard slide">
+            <button type="button" data-slide="0" aria-pressed="true">Glucose</button>
+            <button type="button" data-slide="1" aria-pressed="false">Nutrition</button>
+            <button type="button" data-slide="2" aria-pressed="false">Heart &amp; sleep</button>
+        </div>
+        <div class="slide-arrows">
+            <button type="button" data-direction="-1" aria-label="Previous slide">‹</button>
+            <button type="button" data-direction="1" aria-label="Next slide">›</button>
+        </div>
+    </div>
+    <div class="dashboard-carousel" aria-label="Dashboard" tabindex="0">
+        <div class="dashboard-slide" aria-label="Glucose">
+            {% set dashboard_chart = true %}
+            {% include "glucose_chart.html" %}
+        </div>
+        <section class="dashboard-slide dashboard-card"
+                 aria-labelledby="nutrition-heading">
+            <header class="card-heading">
+                <div>
+                    <p class="eyebrow">Today <span data-summary-date></span></p>
+                    <h2 id="nutrition-heading">Nutrition</h2>
+                </div>
+                <a href="/settings#nutrition-goals">Edit goals</a>
+            </header>
+            <p data-summary-status role="status">Loading today’s totals…</p>
+            <div class="nutrition-grid">
+                <div class="nutrition-totals">
+                    {% for key, label in [('calories', 'Calories'), ('carbs', 'Carbs'), ('protein', 'Protein'), ('fat', 'Fat')] %}
+                        <div class="nutrition-row" data-nutrient="{{ key }}">
+                            <div><strong>{{ label }}</strong><span data-total>—</span></div>
+                            <progress aria-label="{{ label }} goal progress"
+                                      max="100"
+                                      value="0"
+                                      hidden></progress>
+                        </div>
+                    {% endfor %}
+                    <p class="muted" id="nutrition-note"></p>
+                </div>
+                <div class="macro-card">
+                    <h3>Target macro split</h3>
+                    <div id="macro-pie" class="macro-pie" aria-hidden="true" hidden></div>
+                    <p class="muted" id="macro-note">Set daily macro goals to see the split.</p>
+                    <ul class="macro-legend" hidden>
+                        <li class="macro-carbs" data-macro="carbs">Carbs <strong></strong></li>
+                        <li class="macro-protein"
+                            data-macro="protein">Protein <strong></strong></li>
+                        <li class="macro-fat" data-macro="fat">Fat <strong></strong></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+        <section class="dashboard-slide dashboard-card"
+                 aria-labelledby="heart-heading">
+            <header class="card-heading">
+                <div>
+                    <p class="eyebrow">Today <span data-summary-date></span></p>
+                    <h2 id="heart-heading">Heart &amp; sleep</h2>
+                </div>
+                <a href="/integrations/apple-health">Apple Health</a>
+            </header>
+            <p data-summary-status role="status">Loading today’s Apple Health totals…</p>
+            <div class="vitals-grid">
+                <div>
+                    <svg aria-hidden="true">
+                        <use href="/static/icons.svg#heart" />
+                    </svg><strong id="daily-heart">—</strong><span>Average heart rate</span>
+                </div>
+                <div>
+                    <svg aria-hidden="true">
+                        <use href="/static/icons.svg#exercise" />
+                    </svg><strong id="daily-energy">—</strong><span>Active calories burned</span>
+                </div>
+                <div>
+                    <svg aria-hidden="true">
+                        <use href="/static/icons.svg#sleep" />
+                    </svg><strong id="daily-sleep">—</strong><span>Sleep since midnight</span>
+                </div>
+            </div>
+            <p class="muted" id="apple-updated">Last Apple Health import · —</p>
+        </section>
+    </div>
+    <div class="quick-add">
+        <button type="button"
+                class="add-button"
+                id="open-add"
+                aria-haspopup="dialog"
+                aria-controls="add-entry"><span aria-hidden="true">+</span> Add entry</button>
+    </div>
+    <dialog class="add-dialog" id="add-entry" aria-labelledby="add-heading">
+        <div class="card-heading">
+            <div>
+                <p class="eyebrow">Logbook</p>
+                <h2 id="add-heading">Add entry</h2>
+            </div>
+            <form method="dialog">
+                <button type="submit" aria-label="Close add entry">×</button>
+            </form>
+        </div>
+        <div class="add-options">
+            {% for label, hint, icon, href in [
+                ('Add food', 'Log a serving or meal', 'food', '/food#foods-to-log'),
+                ('AI estimate', 'Estimate nutrition from a photo', 'food', '/food/estimate'),
+                ('Scan barcode', 'Find a packaged food', 'barcode', '/food/catalog#scan-start'),
+                ('Glucose reading', 'Record a manual reading', 'heart', '/glucose#add-reading'),
+                ('Exercise', 'Record an activity', 'exercise', '/exercise#add-exercise'),
+                ('Medication', 'Log a dose', 'medication', '/medication#add-medication'),
+                ('Mood', 'Record how you feel', 'mood', '/mood#add-mood'),
+                ('Measurements', 'Log weight or waist', 'measurement', '/health#record-measurements')
+            ] %}
+                <a href="{{ href }}">
+                    <svg aria-hidden="true">
+                        <use href="/static/icons.svg#{{ icon }}" />
+                    </svg><span><strong>{{ label }}</strong><small>{{ hint }}</small></span><span aria-hidden="true">›</span></a>
+            {% endfor %}
+        </div>
+    </dialog>
+</main>
+<script src="/static/glucose-chart.js" defer></script>
+<script src="/static/dashboard.js" defer></script>

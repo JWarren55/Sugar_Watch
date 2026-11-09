@@ -34,6 +34,30 @@ class User(Base):
     active = Column(Boolean, default=True, nullable=False)
 
 
+class NutritionGoal(Base):
+    """One set of daily targets per account, in kcal and grams."""
+
+    __tablename__ = "nutrition_goals"
+    __table_args__ = (
+        CheckConstraint(
+            "calories > 0 AND carbs > 0 AND protein > 0 AND fat > 0",
+            name="ck_nutrition_goals_positive",
+        ),
+    )
+    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+    calories = Column(Float, nullable=False)
+    carbs = Column(Float, nullable=False)
+    protein = Column(Float, nullable=False)
+    fat = Column(Float, nullable=False)
+
+
+class OpenAICredential(Base):
+    __tablename__ = "openai_credentials"
+
+    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+    encrypted_key = Column(String(1024), nullable=False)
+
+
 # Store the user's profile and preferred display units.
 class HealthProfile(Base):
     __tablename__ = "health_profile"

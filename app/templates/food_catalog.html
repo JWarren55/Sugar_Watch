@@ -46,7 +46,7 @@
                     </div>
                     <button type="submit">Search foods</button>
                 </form>
-                <p class="hint">Try Food: cheese, Brand: Great Value. You can also enter “McDonald's, chicken” in the food field. Keep All foods selected to include restaurant entries as well as packaged products.</p>
+                <p class="hint">Try Food: cheese, Brand: Great Value. You can also enter “arbys chicken” in the food field. Keep All foods selected to include restaurant entries as well as packaged products.</p>
             </section>
             <section class="search-card" aria-labelledby="barcode-heading">
                 <h2 id="barcode-heading">Find by barcode</h2>
@@ -100,7 +100,13 @@
                                     <td data-label="Brand">{{ food.brand or '—' }}</td>
                                     <td data-label="Type">{{ food.kind }}</td>
                                     <td data-label="Barcode">{{ food.barcode or '—' }}</td>
-                                    <td><a href="/food/catalog/{{ food.id }}">Review food</a></td>
+                                    <td>
+                                        {% if food.review_url %}
+                                            <a href="{{ food.review_url }}">Review food</a>
+                                        {% else %}
+                                            <a href="/food/catalog/{{ food.id }}">Review food</a>
+                                        {% endif %}
+                                    </td>
                                 </tr>
                             {% endfor %}
                         </tbody>
@@ -114,10 +120,10 @@
                     {% if next_page %}<a href="/food/catalog?q={{ query | urlencode }}&amp;brand={{ brand | urlencode }}&amp;barcode={{ barcode | urlencode }}&amp;kind={{ kind }}&amp;page={{ page + 1 }}">Next</a>{% endif %}
                 </nav>
             {% endif %}
-            <p>Can't find it? <a href="/food">Add a custom food</a> using its package label.</p>
-            <p>Source: <a href="https://fdc.nal.usda.gov/"
+            <p>Can't find it? <a href="/food">Add a custom food</a> using its package label or the restaurant’s nutrition guide.</p>
+            <p>Sources: <a href="https://fdc.nal.usda.gov/"
     target="_blank"
-    rel="noopener noreferrer">USDA FoodData Central</a>.</p>
+    rel="noopener noreferrer">USDA FoodData Central</a> and selected official restaurant nutrition guides.</p>
         </main>
     </body>
 </html>

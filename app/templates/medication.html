@@ -15,7 +15,7 @@
         <p>
             <a href="/trash">Deleted Items</a>
         </p>
-        <form method="post" action="/medication">
+        <form method="post" action="/medication" id="add-medication">
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <p>
                 <label>
@@ -43,7 +43,7 @@
             </p>
             <button type="submit">Save Medication</button>
         </form>
-        <h2>Medication History</h2>
+        <h2 id="history">Medication History</h2>
         {% if entries %}
             <table border="1">
                 <thead>

@@ -18,6 +18,14 @@ logger = logging.getLogger(__name__)
 
 def back_path(request):
     path = request.url.path
+    if path.startswith("/settings/"):
+        return (
+            "/settings#ai-food"
+            if path.startswith("/settings/ai-food/")
+            else "/settings"
+        )
+    if path.startswith("/food/estimate"):
+        return "/food/estimate"
     if path.startswith("/entries/"):
         return path if path.endswith(("/edit", "/purge")) else "/trash"
     section = path.strip("/").split("/")[0]

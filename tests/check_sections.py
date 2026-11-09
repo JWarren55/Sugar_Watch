@@ -86,7 +86,9 @@ with TestClient(app) as client:
     home = client.get("/")
     assert home.status_code == 200 and "<h1>Sugar Watch</h1>" in home.text
     for section, heading in sections.items():
-        assert 'href="/' + section + '"' in home.text
+        assert any(f'href="/{section}{suffix}' in home.text for suffix in ('"', "#")), (
+            section
+        )
         r = client.get("/" + section)
         assert r.status_code == 200 and "<h1>" + heading + "</h1>" in r.text, (
             section,

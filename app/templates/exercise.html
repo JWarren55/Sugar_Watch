@@ -15,7 +15,7 @@
         <p>
             <a href="/trash">Deleted Items</a>
         </p>
-        <h2>Add Exercise</h2>
+        <h2 id="add-exercise">Add Exercise</h2>
         <form method="post" action="/exercise">
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <input type="hidden" name="measurement_units" value="{{ saved_units }}">
@@ -69,7 +69,7 @@
             <button type="submit">Save Exercise</button>
         </form>
         <hr>
-        <h2>Exercise History</h2>
+        <h2 id="history">Exercise History</h2>
         {% if entries %}
             <table border="1">
                 <tr>

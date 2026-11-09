@@ -62,4 +62,5 @@
             status.textContent = error.name === "NotAllowedError" ? "Camera permission was denied. Allow camera access in browser settings or enter the barcode." : "Unable to start the camera. Close other camera apps or enter the barcode numbers.";
         }
     });
+    if (window.location.hash === "#scan-start") start.click();
 })();

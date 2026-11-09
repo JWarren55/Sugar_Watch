@@ -180,6 +180,52 @@ with httpx.Client(transport=httpx.MockTransport(response)) as external:
             ).status_code
             == 303
         )
+        with patch.object(provider, "search", return_value=([], False)):
+            search = client.get("/food/catalog", params={"q": "arbys chicken"})
+            assert (
+                "Restaurant menu" in search.text
+                and "Crispy Chicken Sandwich" in search.text
+            )
+            search = client.get(
+                "/food/catalog", params={"q": "chicken tenders 3pc", "brand": "Arby’s"}
+            )
+            assert "Chicken Tenders (3 piece)" in search.text
+            assert "Chicken Tenders (5 piece)" not in search.text
+            for params in (
+                {"q": "chicken", "brand": "Another Restaurant"},
+                {"q": "arbys chicken", "kind": "branded"},
+            ):
+                assert (
+                    "Restaurant menu"
+                    not in client.get("/food/catalog", params=params).text
+                )
+        restaurant = client.get("/food/catalog/restaurant/arbys-crispy-chicken")
+        assert restaurant.status_code == 200
+        assert "menu serving (240 g)" in restaurant.text and "59.0 g" in restaurant.text
+        assert "Arby&#39;s U.S. Nutrition &amp; Allergen Guide" in restaurant.text
+        restaurant_token = re.search(
+            r'name="review_token" value="([^"]+)"', restaurant.text
+        ).group(1)
+        for _ in range(2):
+            assert (
+                client.post(
+                    "/food/catalog/save",
+                    data={"review_token": restaurant_token},
+                    follow_redirects=False,
+                ).status_code
+                == 303
+            )
+        with database.SessionLocal() as db:
+            food = (
+                db.query(models.FoodItem)
+                .filter_by(
+                    user_id=2, source="restaurant", external_id="arbys-crispy-chicken"
+                )
+                .one()
+            )
+            assert food.carbs == 59 and food.serving_size == 240
+            assert food.barcode is None and food.added_sugar is None
+        assert client.get("/food/catalog/restaurant/arbys-missing").status_code == 404
         assert client.get("/food/catalog?q=" + "a" * 121).status_code == 422
         assert client.get("/food/catalog?page=101").status_code == 422
         with patch.object(

@@ -13,10 +13,12 @@ from app.routes import (
     apple_health,
     apple_native,
     auth,
+    dashboard_pages,
     entries,
     exercise,
     food,
     food_catalog,
+    food_estimate,
     glucose,
     health,
     home,
@@ -55,6 +57,7 @@ apply_storage_migrations(engine)
 
 # Register each page and its form handlers.
 app.include_router(home.router)
+app.include_router(dashboard_pages.router)
 app.include_router(apple_health.router)
 app.include_router(apple_native.router)
 app.include_router(auth.router)
@@ -62,6 +65,7 @@ app.include_router(signup.router)
 app.include_router(glucose.router)
 app.include_router(food.router)
 app.include_router(food_catalog.router)
+app.include_router(food_estimate.router)
 app.include_router(exercise.router)
 
 app.include_router(medication.router)

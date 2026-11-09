@@ -224,19 +224,22 @@ def parse_export(payload):
     return [(kind, values) for (kind, _), values in result.items()], ignored
 
 
-def asleep_seconds(rows):
-    """Union asleep intervals, excluding in-bed/awake and overlapping duplicate sources."""
+def asleep_intervals(rows):
+    """Merge asleep intervals across stages and overlapping sources."""
     intervals = sorted(
-        (r.start_time, r.end_time)
-        for r in rows
-        if r.stage in ("asleep", "core", "deep", "rem")
+        (row.start_time, row.end_time)
+        for row in rows
+        if row.stage in ("asleep", "core", "deep", "rem")
+        and row.end_time > row.start_time
     )
-    end = None
-    total = 0
-    for start, stop in intervals:
-        if end is None or start > end:
-            total += (stop - start).total_seconds()
-        elif stop > end:
-            total += (stop - end).total_seconds()
-        end = max(end, stop) if end is not None else stop
-    return total
+    merged = []
+    for start, end in intervals:
+        if not merged or start > merged[-1][1]:
+            merged.append((start, end))
+        elif end > merged[-1][1]:
+            merged[-1] = (merged[-1][0], end)
+    return merged
+
+
+def asleep_seconds(rows):
+    return sum((end - start).total_seconds() for start, end in asleep_intervals(rows))

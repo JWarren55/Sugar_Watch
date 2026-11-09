@@ -16,35 +16,8 @@
         <p>
             <a href="/trash">Deleted Items</a>
         </p>
-        <section id="glucose-chart"
-                 class="glucose-chart"
-                 aria-labelledby="chart-heading">
-            <div class="chart-heading-row">
-                <h2 id="chart-heading">Glucose over time</h2>
-                <div class="chart-ranges" role="group" aria-label="Chart time range">
-                    <button type="button" data-chart-hours="6" aria-pressed="false">6 hours</button>
-                    <button type="button"
-                            data-chart-hours="12"
-                            aria-pressed="true">12 hours</button>
-                    <button type="button"
-                            data-chart-hours="24"
-                            aria-pressed="false">24 hours</button>
-                </div>
-            </div>
-            <p id="chart-status" role="status" aria-live="polite">Loading glucose readings…</p>
-            <div id="chart-canvas" class="chart-canvas" aria-busy="true"></div>
-            <div id="chart-inspection" hidden>
-                <label for="chart-reading">Inspect a reading</label>
-                <input type="range" id="chart-reading" min="0" max="0" value="0" step="1">
-                <output id="chart-reading-value" for="chart-reading"></output>
-            </div>
-            <p class="chart-note">Times use your local timezone. Gaps longer than 20 minutes are shown without a connecting line.</p>
-            <button type="button" id="chart-refresh">Refresh chart</button>
-            <noscript>
-                <p>Enable JavaScript to view the chart. Your readings are listed in Glucose History below.</p>
-            </noscript>
-        </section>
-        <h2>Import LibreView Readings</h2>
+        {% include "glucose_chart.html" %}
+        <h2 id="libreview">Import LibreView Readings</h2>
         <p>Download an English CSV from LibreView, then upload it here. Readings are added to your account only. Repeated imports skip existing readings, including readings in Deleted Items. The uploaded file is not saved.</p>
         {% if imported is not none %}<p>Imported {{ imported }} readings; skipped {{ skipped }} existing readings.</p>{% endif %}
         <form method="post"
@@ -69,7 +42,7 @@
             </select>
             <button type="submit">Import Readings</button>
         </form>
-        <h2>Add Reading</h2>
+        <h2 id="add-reading">Add Reading</h2>
         <form method="post" action="/glucose">
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <label for="glucose">Glucose (mg/dL)</label>
@@ -83,7 +56,7 @@
             <button type="submit">Save Reading</button>
         </form>
         <hr>
-        <h2>Glucose History</h2>
+        <h2 id="history">Glucose History</h2>
         {% if readings %}
             <table border="1">
                 <tr>

@@ -15,7 +15,7 @@
         <p>
             <a href="/trash">Deleted Items</a>
         </p>
-        <h2>Profile</h2>
+        <h2 id="profile">Profile</h2>
         <p>
             Choose Imperial for height in inches or Metric for centimeters. Changing units converts the height you entered. Save your profile to apply your unit preference to measurements and exercise distance.
         </p>
@@ -68,7 +68,7 @@
             <button type="submit">{{ 'Update Profile' if profile else 'Create Profile' }}</button>
         </form>
         <hr>
-        <h2>Record Measurements</h2>
+        <h2 id="record-measurements">Record Measurements</h2>
         <form method="post" action="/health/measurements">
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <input type="hidden" name="measurement_units" value="{{ saved_units }}">
@@ -95,7 +95,7 @@
             </p>
             <button type="submit">Save Measurements</button>
         </form>
-        <h2>Measurement History</h2>
+        <h2 id="history">Measurement History</h2>
         {% if entries %}
             <table border="1">
                 <thead>

@@ -1,0 +1,51 @@
+{% from "pagination.html" import pager %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Logs · Sugar Watch</title>
+    </head>
+    <body>
+        {% include "navigation.html" %}
+        <header class="app-heading">
+            <div>
+                <p class="eyebrow">Sugar Watch</p>
+                <h1>Logs</h1>
+            </div>
+            <a href="/trash">Deleted items</a>
+        </header>
+        <main class="dashboard-card">
+            <nav class="log-tabs" aria-label="Record tables">
+                {% for key, record in logs.items() %}<a href="/logs?log={{ key }}"
+   {% if key == log %}aria-current="page"{% endif %}>{{ record[0] }}</a>{% endfor %}
+            </nav>
+            <header class="card-heading">
+                <h2>{{ label }}</h2>
+                <a href="{{ manage }}">Open {{ label | lower }}</a>
+            </header>
+            {% if rows %}
+                <div class="table-scroll"
+                     tabindex="0"
+                     role="region"
+                     aria-label="{{ label }} records">
+                    <table>
+                        <thead><tr>{% for key in columns %}<th scope="col">{{ labels.get(key, key.replace('_', ' ') | capitalize) }}</th>{% endfor %}</tr></thead>
+                        <tbody>
+                            {% for row in rows %}
+                                <tr>
+                                    {% for key in columns %}
+                                        {% set value = row[key] %}
+                                        <td>{% if key in ("timestamp", "start_time", "end_time") %}{{ value | local_time }}{% elif value is not none %}{{ value }}{% else %}—{% endif %}</td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}<p>No {{ label | lower }} records yet.</p>{% endif %}
+            {{ pager(pagination, label ~ ' records') }}
+        </main>
+        <script src="/static/time.js" defer></script>
+    </body>
+</html>

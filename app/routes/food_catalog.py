@@ -1,4 +1,4 @@
-"""Search, review, and explicitly save USDA foods for the signed-in account."""
+"""Search, review, and save catalog foods for the signed-in account."""
 
 from fastapi import APIRouter, Form, HTTPException, Query, Request
 from fastapi.responses import RedirectResponse
@@ -11,6 +11,12 @@ from app.forms.entry_rules import validate_values
 from app.routes.common import templates
 from app.services.food_catalog import CatalogError, USDAClient, normalize_brand
 from app.services.nutrition import NUTRIENT_UNITS
+from app.services.restaurant_menu import (
+    ARBYS_SOURCE,
+    ARBYS_SOURCE_LABEL,
+    restaurant_food,
+    search_restaurant_menu,
+)
 
 router = APIRouter()
 
@@ -49,6 +55,8 @@ def search_foods(
                 foods, next_page = client().search(query, page, brand=brand, kind=kind)
         except CatalogError as exc:
             error = str(exc)
+    if not barcode and kind == "all" and page == 1:
+        foods = search_restaurant_menu(query, brand) + foods
     return templates.TemplateResponse(
         request=request,
         name="food_catalog.html",
@@ -74,15 +82,48 @@ def review_food(request: Request, fdc_id: int):
         values = validate_values("food-item", client().food(fdc_id))
     except CatalogError as exc:
         raise HTTPException(503, str(exc))
+    return render_review(
+        request,
+        values,
+        source="usda",
+        external_id=str(fdc_id),
+        source_url=f"https://fdc.nal.usda.gov/food-details/{fdc_id}/nutrients",
+        source_label=f"USDA FoodData Central, food {fdc_id}",
+    )
+
+
+@router.get("/food/catalog/restaurant/{external_id}")
+def review_restaurant_food(request: Request, external_id: str):
+    food = restaurant_food(external_id)
+    if food is None:
+        raise HTTPException(404, "Food not found.")
+    return render_review(
+        request,
+        validate_values("food-item", food),
+        source="restaurant",
+        external_id=external_id,
+        source_url=ARBYS_SOURCE,
+        source_label=ARBYS_SOURCE_LABEL,
+    )
+
+
+def render_review(request, values, *, source, external_id, source_url, source_label):
     token = signer().dumps(
-        {"user_id": request.state.user.id, "fdc_id": fdc_id, "food": values}
+        {
+            "user_id": request.state.user.id,
+            "source": source,
+            "external_id": external_id,
+            "food": values,
+        }
     )
     return templates.TemplateResponse(
         request=request,
         name="food_review.html",
         context={
             "food": values,
-            "fdc_id": fdc_id,
+            "source": source,
+            "source_url": source_url,
+            "source_label": source_label,
             "review_token": token,
             "nutrient_units": NUTRIENT_UNITS,
         },
@@ -96,7 +137,11 @@ def save_food(request: Request, review_token: str = Form(..., max_length=12000))
         if review["user_id"] != request.state.user.id:
             raise BadSignature("wrong account")
         values = validate_values("food-item", review["food"])
-        fdc_id = str(int(review["fdc_id"]))
+        source = review.get("source", "usda")
+        # Reviews opened before the catalog supported restaurant menus use fdc_id.
+        external_id = (
+            review["external_id"] if "source" in review else str(int(review["fdc_id"]))
+        )
     except (BadSignature, KeyError, TypeError, ValueError):
         raise HTTPException(
             400,
@@ -109,7 +154,9 @@ def save_food(request: Request, review_token: str = Form(..., max_length=12000))
         ).with_for_update().one()
         existing = (
             db.query(models.FoodItem)
-            .filter_by(user_id=request.state.user.id, source="usda", external_id=fdc_id)
+            .filter_by(
+                user_id=request.state.user.id, source=source, external_id=external_id
+            )
             .first()
         )
         if existing is not None:
@@ -122,8 +169,8 @@ def save_food(request: Request, review_token: str = Form(..., max_length=12000))
             db.add(
                 models.FoodItem(
                     user_id=request.state.user.id,
-                    source="usda",
-                    external_id=fdc_id,
+                    source=source,
+                    external_id=external_id,
                     active=True,
                     **values,
                 )

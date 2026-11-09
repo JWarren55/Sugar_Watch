@@ -15,7 +15,7 @@
         <p>
             <a href="/trash">Deleted Items</a>
         </p>
-        <form method="post" action="/mood">
+        <form method="post" action="/mood" id="add-mood">
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <p>
                 <label>
@@ -62,7 +62,7 @@
             </p>
             <button type="submit">Save Mood</button>
         </form>
-        <h2>Mood History</h2>
+        <h2 id="history">Mood History</h2>
         {% if entries %}
             <table border="1">
                 <thead>

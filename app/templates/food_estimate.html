@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>AI food estimate · Sugar Watch</title>
+    </head>
+    <body>
+        {% include "navigation.html" %}
+        <header class="app-heading">
+            <div>
+                <p class="eyebrow">Food log</p>
+                <h1>AI food estimate</h1>
+            </div>
+        </header>
+        <main>
+            <p><a href="/food">Back to food log</a></p>
+            {% if key_saved %}
+                <section class="dashboard-card" aria-labelledby="photo-heading">
+                    <h2 id="photo-heading">Add a meal photo</h2>
+                    <p>Include the whole portion you ate. Describe ingredients or amounts that are hard to see.</p>
+                    <form method="post" action="/food/estimate" id="photo-form"
+                          enctype="multipart/form-data" data-max-bytes="{{ max_photo_bytes }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <fieldset class="goals-form" id="photo-fields">
+                            <legend>Meal details</legend>
+                            <label>
+                                Choose a photo
+                                <input type="file" id="photo-file" accept="image/*">
+                            </label>
+                            <button type="button" id="open-camera">Take a photo</button>
+                            <div id="camera-panel" hidden>
+                                <video id="meal-camera" width="320" autoplay muted playsinline
+                                       aria-label="Food camera preview"></video>
+                                <div>
+                                    <button type="button" id="capture-photo" disabled>Capture photo</button>
+                                    <button type="button" id="close-camera">Cancel camera</button>
+                                </div>
+                            </div>
+                            <p id="photo-selection" role="status">Choose a photo or take one with your camera.</p>
+                            <label>
+                                Food name
+                                <input name="name" maxlength="200" required>
+                            </label>
+                            <label>
+                                Description (optional)
+                                <textarea name="description" maxlength="1000" rows="3"></textarea>
+                            </label>
+                            <label>
+                                Date and time
+                                <input name="timestamp" type="datetime-local" required>
+                            </label>
+                            <p class="muted">
+                                Get estimate sends your photo, name, description, and meal time to OpenAI
+                                using your API key. Sugar Watch does not retain the photo.
+                            </p>
+                            <button type="submit" id="request-estimate" disabled>Get estimate</button>
+                        </fieldset>
+                    </form>
+                    <p id="estimate-status" role="status"></p>
+                    <p id="estimate-error" role="alert"></p>
+                    <p><a href="/settings#ai-food">Manage your OpenAI API key</a></p>
+                    <noscript><p>Enable JavaScript to take or upload a meal photo.</p></noscript>
+                </section>
+                <section class="dashboard-card" id="estimate-review" aria-labelledby="review-heading" hidden>
+                    <h2 id="review-heading" tabindex="-1">Review nutrition estimate</h2>
+                    <p id="portion-note"></p>
+                    <p>Check and edit the totals for your portion. Ingredients and serving sizes can be hard to judge from a photo.</p>
+                    <form method="post" action="/food/estimate/log" class="goals-form" id="save-estimate">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <label>
+                            Food name
+                            <input name="name" maxlength="200" required>
+                        </label>
+                        <label>
+                            Date and time
+                            <input name="timestamp" type="datetime-local" required>
+                        </label>
+                        {% for name, label in nutrients.items() %}
+                            <label>
+                                {{ label }}
+                                <input name="{{ name }}" type="number" inputmode="decimal"
+                                       min="0" max="{{ max_nutrient }}" step="any" required>
+                            </label>
+                        {% endfor %}
+                        <button type="submit">Save food entry</button>
+                    </form>
+                </section>
+                <script src="/static/time.js" defer></script>
+                <script src="/static/food-estimate.js" defer></script>
+            {% else %}
+                <section class="dashboard-card">
+                    <h2>Connect OpenAI</h2>
+                    <p>Add your own OpenAI API key to use photo estimates. Settings includes setup and billing instructions.</p>
+                    <p><a href="/settings#ai-food">Set up AI food estimates</a></p>
+                </section>
+            {% endif %}
+        </main>
+    </body>
+</html>

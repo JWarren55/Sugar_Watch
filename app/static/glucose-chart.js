@@ -32,6 +32,68 @@
         return element;
     }
 
+    function renderTimeline(svg, x, plotTop, plotBottom, width) {
+        if (!data.timeline) return;
+        for (const workout of data.timeline.workouts) {
+            const begin = x(Date.parse(workout.start));
+            const stop = x(Date.parse(workout.end));
+            if (stop <= begin) continue;
+            svg.append(node("rect", {x: begin, y: plotTop, width: stop - begin, height: plotBottom - plotTop, class: "chart-workout"}));
+        }
+        const buckets = new Map();
+        const spacing = 28;
+        const events = data.timeline.events;
+        for (const event of events) {
+            const position = x(Date.parse(event.time));
+            const bucket = Math.floor(position / spacing);
+            if (!buckets.has(bucket)) buckets.set(bucket, []);
+            buckets.get(bucket).push(event);
+        }
+        for (const group of buckets.values()) {
+            // Give a logged event precedence over background Apple Health samples.
+            const primary = group.find(event => event.kind !== "apple") || group[0];
+            const point = x(Date.parse(primary.time));
+            const markerY = plotBottom + 37;
+            const glyph = node("svg", {x: Math.min(width - 20, point - 9), y: markerY, width: 18, height: 18, class: "chart-event-icon"});
+            glyph.append(node("use", {href: `/static/icons.svg#${primary.kind}`}));
+            const marker = node("g");
+            marker.append(node("title", {}, `${fullTime.format(new Date(primary.time))} · ${primary.label}${group.length > 1 ? ` and ${group.length - 1} more` : ""}`));
+            marker.append(node("line", {x1: point, x2: point, y1: plotTop, y2: markerY - 3, class: "chart-event-connector"}), glyph);
+            if (group.length > 1) marker.append(node("text", {x: point + 7, y: markerY + 18, class: "chart-event-count"}, "+"));
+            svg.append(marker);
+        }
+    }
+
+    function renderEventList() {
+        const details = document.getElementById("chart-events");
+        if (!details) return;
+        const list = details.querySelector("ul");
+        const events = data.timeline?.events || [];
+        // Aggregate device samples per type and minute so frequent samples do not crowd the log.
+        const grouped = new Map();
+        for (const event of events) {
+            const key = event.kind === "apple" ? `${event.time.slice(0, 16)}|${event.label}` : Symbol();
+            if (!grouped.has(key)) grouped.set(key, {...event, count: 0});
+            grouped.get(key).count += 1;
+        }
+        const items = [...grouped.values()].map(event => {
+            const item = document.createElement("li");
+            const time = document.createElement("time");
+            time.dateTime = event.time;
+            time.textContent = shortTime.format(new Date(event.time));
+            const icon = node("svg", {"aria-hidden": "true"});
+            icon.append(node("use", {href: `/static/icons.svg#${event.kind}`}));
+            const label = event.count > 1 ? `${event.label} × ${event.count}` : event.label;
+            item.append(icon, time, document.createTextNode(label));
+            return item;
+        });
+        const fragment = document.createDocumentFragment();
+        for (const item of items) fragment.append(item);
+        list.replaceChildren(fragment);
+        details.querySelector("summary").textContent = `Timeline events (${events.length})`;
+        details.hidden = events.length === 0;
+    }
+
     function draw() {
         if (!data) return;
         const points = data.readings.map(row => ({
@@ -39,11 +101,11 @@
             glucose: row.glucose
         }));
         const width = Math.max(280, canvas.clientWidth);
-        const height = 320;
-        const left = 60,
+        const height = data.timeline && width < 500 ? 275 : 320;
+        const left = width < 400 ? 54 : 60,
             right = 18,
             top = 22,
-            bottom = 68;
+            bottom = data.timeline ? 94 : 68;
         const plotWidth = width - left - right,
             plotHeight = height - top - bottom;
         const start = new Date(data.start).getTime(),
@@ -64,6 +126,7 @@
         svg.append(node("desc", {
             id: "glucose-svg-description"
         }, `${points.length} recorded readings. Time runs left to right; glucose in milligrams per deciliter runs bottom to top. Use the reading slider for individual values.`));
+        renderTimeline(svg, x, top, y(0), width);
         for (let tick = 0; tick <= ceiling; tick += step) {
             svg.append(node("line", {
                 x1: left,
@@ -168,13 +231,16 @@
         controller = request;
         const selectedHours = hours;
         data = undefined;
+        const eventList = document.getElementById("chart-events");
+        if (eventList) eventList.hidden = true;
         canvas.replaceChildren();
         inspection.hidden = true;
         canvas.setAttribute("aria-busy", "true");
         status.textContent = "Loading glucose readings…";
         buttons.forEach(button => button.setAttribute("aria-pressed", Number(button.dataset.chartHours) === hours ? "true" : "false"));
         try {
-            const response = await fetch(`/glucose/chart?hours=${selectedHours}`, {
+            const events = root.hasAttribute("data-timeline");
+            const response = await fetch(`/glucose/chart?hours=${selectedHours}&events=${events}`, {
                 headers: {
                     Accept: "application/json"
                 },
@@ -187,8 +253,10 @@
             const result = await response.json();
             if (request.signal.aborted) return;
             data = result;
-            slider.value = Math.max(0, data.readings.length - 1);
+            slider.max = Math.max(0, data.readings.length - 1);
+            slider.value = slider.max;
             draw();
+            renderEventList();
             const latest = data.readings.at(-1);
             status.textContent = `${data.readings.length} readings · Past ${selectedHours} hours` + (latest ? ` · Latest: ${fullTime.format(new Date(latest.time))}` : "");
         } catch (error) {

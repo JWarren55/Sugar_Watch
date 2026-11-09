@@ -2,33 +2,34 @@
     max-width: 1000px;
     margin: 1.25rem 0 2rem;
     padding: 1rem;
-    border: 1px solid #cbd5e1;
+    border: 1px solid var(--line);
     border-radius: 12px;
-    background: #fff;
-    color: #172033;
+    background: var(--surface);
+    color: var(--text);
     font-family: system-ui, sans-serif;
 }
 .chart-heading-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .75rem; }
 .chart-heading-row h2 { margin: 0; font-size: 1.25rem; }
 .chart-ranges { display: flex; gap: .35rem; }
-.glucose-chart button { padding: .55rem .8rem; border: 1px solid #64748b; border-radius: 6px; background: #fff; color: #172033; cursor: pointer; }
-.chart-ranges button[aria-pressed="true"] { background: #1d4ed8; color: #fff; border-color: #1d4ed8; }
-.glucose-chart button:focus-visible, #chart-reading:focus-visible { outline: 3px solid #f59e0b; outline-offset: 3px; }
+.glucose-chart button { padding: .55rem .8rem; border: 1px solid var(--line); border-radius: 6px; background: var(--raised); color: var(--text); cursor: pointer; }
+.chart-ranges button[aria-pressed="true"] { background: #204039; color: #b5f6e2; border-color: #457b6c; }
+.glucose-chart button:focus-visible, #chart-reading:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
 .chart-canvas { width: 100%; min-height: 320px; }
-.chart-canvas svg { display: block; width: 100%; height: 320px; }
-.chart-canvas text { font: 12px system-ui, sans-serif; fill: #475569; }
-.chart-grid { stroke: #e2e8f0; stroke-width: 1; }
-.chart-axis { stroke: #64748b; stroke-width: 1; }
-.chart-line { fill: none; stroke: #1d4ed8; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
-.chart-point { fill: #1d4ed8; }
-.chart-selected { fill: #fff; stroke: #1d4ed8; stroke-width: 3; pointer-events: none; }
-.chart-note { color: #475569; font-size: .85rem; }
+.chart-canvas > svg { display: block; width: 100%; height: auto; }
+.chart-canvas text { font: 12px system-ui, sans-serif; fill: var(--muted); }
+.chart-grid { stroke: var(--line); stroke-width: 1; }
+.chart-axis { stroke: var(--muted); stroke-width: 1; }
+.chart-line { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.chart-point { fill: var(--accent); }
+.chart-selected { fill: var(--surface); stroke: var(--accent); stroke-width: 3; pointer-events: none; }
+.chart-note { color: var(--muted); font-size: .85rem; }
 #chart-status { min-height: 1.5em; font-size: .9rem; }
 #chart-inspection { margin: .5rem 0; }
-#chart-reading { display: block; width: 100%; max-width: 700px; margin: .6rem 0; accent-color: #1d4ed8; }
+#chart-reading { display: block; width: 100%; max-width: 700px; margin: .6rem 0; accent-color: var(--accent); }
 #chart-reading-value { display: block; min-height: 1.5em; font-size: .9rem; }
 @media (max-width: 480px) {
     .glucose-chart { padding: .65rem; }
     .chart-ranges { width: 100%; }
     .chart-ranges button { flex: 1; }
 }
+.workout-key { display: inline-block; width: .7rem; height: .7rem; border-radius: .18rem; background: #44c790; }
